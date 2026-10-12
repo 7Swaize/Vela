@@ -1,0 +1,42 @@
+%{
+#include <cstddef>
+#include <cstring>
+#include "token.h"
+
+namespace vela::lex {
+
+%}
+
+%language=C++
+%struct-type
+%define class-name VelaKeywords
+%define lookup-function-name lookup
+%compare-lengths
+%compare-strncmp
+%readonly-tables
+%enum
+
+struct PerfectKeywordHashTableEntry { const char* name; TokenKind kind; };
+
+%%
+struct, TokenKind::KwStruct
+class, TokenKind::KwClass
+fn, TokenKind::KwFn
+if, TokenKind::KwIf
+else, TokenKind::KwElse
+for, TokenKind::KwFor
+while, TokenKind::KwWhile
+return, TokenKind::KwReturn
+true, TokenKind::KwTrue
+false, TokenKind::KwFalse
+null, TokenKind::KwNull
+this, TokenKind::KwThis
+new, TokenKind::KwNew
+void, TokenKind::KwVoid
+int, TokenKind::KwInt
+float, TokenKind::KwFloat
+bool, TokenKind::KwBool
+string, TokenKind::KwString
+%%
+
+}

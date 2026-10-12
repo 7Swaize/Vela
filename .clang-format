@@ -1,0 +1,85 @@
+---
+Language: Cpp
+BasedOnStyle: LLVM
+AccessModifierOffset: -4
+AlignAfterOpenBracket: DontAlign
+AlignConsecutiveAssignments: false
+AlignConsecutiveDeclarations: false
+AlignConsecutiveMacros: None
+AlignEscapedNewlines: Left
+AlignOperands: true
+AlignTrailingComments: false
+AllowShortFunctionsOnASingleLine: Empty
+AlwaysBreakTemplateDeclarations: Yes
+BraceWrapping: 
+  AfterCaseLabel: false
+  AfterClass: false
+  AfterControlStatement: false
+  AfterEnum: false
+  AfterFunction: false
+  AfterNamespace: false
+  AfterStruct: false
+  AfterUnion: false
+  AfterExternBlock: false
+  BeforeCatch: false
+  BeforeElse: false
+  BeforeLambdaBody: false
+  BeforeWhile: false
+  SplitEmptyFunction: true
+  SplitEmptyRecord: true
+  SplitEmptyNamespace: true
+BreakBeforeBinaryOperators: NonAssignment
+BreakBeforeBraces: Custom
+BreakConstructorInitializers: AfterColon
+BreakConstructorInitializersBeforeComma: false
+ColumnLimit: 0
+ConstructorInitializerAllOnOneLineOrOnePerLine: false
+ContinuationIndentWidth: 8
+IncludeCategories: 
+  - Regex: '^<.*'
+    Priority: 1
+  - Regex: '^".*'
+    Priority: 2
+  - Regex: '.*'
+    Priority: 3
+IncludeIsMainRegex: '([-_](test|unittest))?$'
+IndentCaseLabels: true
+IndentWidth: 4
+InsertBraces: true
+InsertNewlineAtEOF: true
+MacroBlockBegin: ''
+MacroBlockEnd: ''
+MaxEmptyLinesToKeep: 2
+NamespaceIndentation: All
+RemoveSemicolon: true
+SpaceAfterCStyleCast: true
+SpaceAfterTemplateKeyword: false
+SpaceBeforeParensOptions: 
+  AfterRequiresInClause: true
+  AfterControlStatements: true
+  AfterForeachMacros: true
+  AfterFunctionDefinitionName: false
+  AfterFunctionDeclarationName: false
+  AfterIfMacros: true
+  AfterOverloadedOperator: false
+  AfterRequiresInExpression: false
+  BeforeNonEmptyParentheses: false
+SpaceBeforeRangeBasedForLoopColon: false
+SpaceInEmptyParentheses: false
+SpacesInAngles: false
+SpacesInConditionalStatement: false
+SpacesInCStyleCastParentheses: false
+SpacesInParentheses: false
+StatementMacros: 
+  - _EXTERN_CXX_WORKAROUND
+  - _END_EXTERN_CXX_WORKAROUND
+  - _STD_BEGIN
+  - _STD_END
+  - _STDEXT_BEGIN
+  - _STDEXT_END
+  - _FMT_P2286_BEGIN
+  - _FMT_P2286_END
+  - _EXTERN_C_UNLESS_PURE
+  - _END_EXTERN_C_UNLESS_PURE
+TabWidth: 4
+...
