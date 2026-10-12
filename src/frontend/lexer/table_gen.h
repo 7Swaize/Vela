@@ -1,8 +1,7 @@
-#ifndef TABLE_GEN_H
-#define TABLE_GEN_H
+#ifndef VELA_TABLE_GEN_H
+#define VELA_TABLE_GEN_H
 
 #include <array>
-#include <cstdint>
 #include <string_view>
 
 
@@ -21,13 +20,13 @@ namespace vela::lex::detail {
     };
 
     inline constexpr std::array kRects = {
-        Rect{.bit = 0, .members = "ABCDEFGHIJKLMNOabcdefghijklmno"}, // ident
-        Rect{.bit = 1, .members = "PQRSTUVWXYZpqrstuvwxyz"}, // ident
-        Rect{.bit = 2, .members = "_"}, // ident
-        Rect{.bit = 3, .members = "0123456789"}, // ident
-        Rect{.bit = 4, .members = "!%&()*+,-./"}, // punct
-        Rect{.bit = 5, .members = ";<=>{|}~"}, // punct
-        Rect{.bit = 6, .members = "[]^"} // punct
+            Rect{.bit = 0, .members = "ABCDEFGHIJKLMNOabcdefghijklmno"}, // ident
+            Rect{.bit = 1, .members = "PQRSTUVWXYZpqrstuvwxyz"}, // ident
+            Rect{.bit = 2, .members = "_"}, // ident
+            Rect{.bit = 3, .members = "0123456789"}, // ident
+            Rect{.bit = 4, .members = "!%&()*+,-./"}, // punct
+            Rect{.bit = 5, .members = ";<=>{|}~"}, // punct
+            Rect{.bit = 6, .members = "[]^"} // punct
     };
 
     inline constexpr std::string_view kWhiteSpace = " \t\n\r";
@@ -64,6 +63,6 @@ namespace vela::lex::detail {
 
 namespace vela::lex {
     inline constexpr NibblesTable kTables = detail::compute_tables();
-} // namespace vela::lex::detail
+} // namespace vela::lex
 
-#endif // TABLE_GEN_H
+#endif // VELA_TABLE_GEN_H

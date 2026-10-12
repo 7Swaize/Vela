@@ -1,8 +1,6 @@
-#ifndef TOKEN_H
-#define TOKEN_H
+#ifndef VELA_TOKEN_H
+#define VELA_TOKEN_H
 
-#include <cstdint>
-#include <cstring>
 #include <string_view>
 
 
@@ -63,28 +61,28 @@ namespace vela::lex {
     X(LtLt, "<<")                 \
     X(GtGt, ">>")
 
-#define VELA_SINGLE_CHAR_TOKENS(X)  \
-    X('(', LParen)                  \
-    X(')', RParen)                  \
-    X('{', LBrace)                  \
-    X('}', RBrace)                  \
-    X('[', LBracket)                \
-    X(']', RBracket)                \
-    X(',', Comma)                   \
-    X('.', Dot)                     \
-    X(';', Semicolon)               \
-    X('+', Plus)                    \
-    X('-', Minus)                   \
-    X('*', Star)                    \
-    X('/', Slash)                   \
-    X('%', Percent)                 \
-    X('!', Excl)                    \
-    X('~', Tilde)                   \
-    X('&', Amp)                     \
-    X('|', Pipe)                    \
-    X('^', Caret)                   \
-    X('<', Lt)                      \
-    X('>', Gt)                      \
+#define VELA_SINGLE_CHAR_TOKENS(X) \
+    X('(', LParen)                 \
+    X(')', RParen)                 \
+    X('{', LBrace)                 \
+    X('}', RBrace)                 \
+    X('[', LBracket)               \
+    X(']', RBracket)               \
+    X(',', Comma)                  \
+    X('.', Dot)                    \
+    X(';', Semicolon)              \
+    X('+', Plus)                   \
+    X('-', Minus)                  \
+    X('*', Star)                   \
+    X('/', Slash)                  \
+    X('%', Percent)                \
+    X('!', Excl)                   \
+    X('~', Tilde)                  \
+    X('&', Amp)                    \
+    X('|', Pipe)                   \
+    X('^', Caret)                  \
+    X('<', Lt)                     \
+    X('>', Gt)                     \
     X('=', Assign)
 
 #define VELA_LEX_ERROR_KINDS(X)                  \
@@ -155,7 +153,9 @@ namespace vela::lex {
 #define X(name, str)                                                    \
     if constexpr (std::string_view(#name).starts_with("Kw")) {          \
         const int len = static_cast<int>(std::string_view(str).size()); \
-        if (len > max_len) max_len = len;                               \
+        if (len > max_len) {                                            \
+            max_len = len;                                              \
+        }                                                               \
     }
         VELA_TOKEN_KINDS(X)
 #undef X
@@ -169,7 +169,9 @@ namespace vela::lex {
 #define X(name, str)                                                    \
     if constexpr (std::string_view(#name).starts_with("Kw")) {          \
         const int len = static_cast<int>(std::string_view(str).size()); \
-        if (len < min_len) min_len = len;                               \
+        if (len < min_len) {                                            \
+            min_len = len;                                              \
+        }                                                               \
     }
         VELA_TOKEN_KINDS(X)
 #undef X
@@ -179,4 +181,4 @@ namespace vela::lex {
 
 } // namespace vela::lex
 
-#endif // TOKEN_H
+#endif // VELA_TOKEN_H

@@ -1,5 +1,5 @@
-#ifndef VELA_FILE_SOURCE_BUFFER_H
-#define VELA_FILE_SOURCE_BUFFER_H
+#ifndef VELA_LEX_SOURCE_BUFFER_H
+#define VELA_LEX_SOURCE_BUFFER_H
 
 #include <memory>
 #include <optional>
@@ -12,10 +12,15 @@ namespace vela::lex {
 
         static std::optional<LexSourceBufferView> load(const char *path);
 
-        template<typename T> requires std::is_const_v<T>
-        std::weak_ptr<T> data() const { return std::weak_ptr<T>(m_data); }
+        template<typename T>
+            requires std::is_const_v<T>
+        std::weak_ptr<T> data() const {
+            return std::weak_ptr<T>(m_data);
+        }
 
-        [[nodiscard]] LexPos size() const { return m_size; }
+        [[nodiscard]] LexPos size() const {
+            return m_size;
+        }
 
     private:
         struct Free {
@@ -27,6 +32,6 @@ namespace vela::lex {
         std::unique_ptr<uint8_t[], Free> m_data;
         LexPos m_size = 0;
     };
-}
+} // namespace vela::lex
 
-#endif //VELA_FILE_SOURCE_BUFFER_H
+#endif // VELA_LEX_SOURCE_BUFFER_H

@@ -15,6 +15,11 @@ add_library(vela_lexer STATIC
     src/frontend/lexer/table_gen.h
     src/frontend/lexer/token.h
     src/frontend/lexer/lex_source_buffer.h
+
+    src/frontend/lexer/backend/avx2.h
+    src/frontend/lexer/backend/block.h
+    src/frontend/lexer/backend/neon.h
+    src/frontend/lexer/backend/select.h
 )
 target_include_directories(vela_lexer PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
