@@ -1,4 +1,3 @@
-
 #ifndef VELA_BLOCK_H
 #define VELA_BLOCK_H
 

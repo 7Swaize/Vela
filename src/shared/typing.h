@@ -2,6 +2,7 @@
 #define VELA_TYPING_H
 
 #include <concepts>
+#include <cstdint>
 
 // clang-format off
 
