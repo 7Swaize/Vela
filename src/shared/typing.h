@@ -11,7 +11,7 @@ concept OneOf = (std::same_as<T, Ts> || ...);
 
 template <typename T>
 concept FixedUnsignedInteger =
-    OneOf<std::remove_cvref_t<T>, uint8_t, uint16_t, uint32_t, uint32_t>;
+    OneOf<std::remove_cvref_t<T>, uint8_t, uint16_t, uint32_t, uint64_t>;
 
 // clang-format on
 

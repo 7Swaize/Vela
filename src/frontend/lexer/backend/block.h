@@ -13,7 +13,7 @@ namespace vela::lex {
         T escape_carry = 0;
         T pair_carry = 0;
         T ident_carry = 0;
-        T in_string = 0;
+        T in_string = 0; // If we are in a string we need to xor every bit with 1 to flip outcome of prefix_xor
     };
 
     template <FixedUnsignedInteger T>

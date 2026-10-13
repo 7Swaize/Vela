@@ -12,15 +12,12 @@ namespace vela::lex {
 
         static std::optional<LexSourceBufferView> load(const char *path);
 
-        template<typename T>
-            requires std::is_const_v<T>
-        std::weak_ptr<T> data() const {
-            return std::weak_ptr<T>(m_data);
-        }
+        // clang-format off
+        template<typename T> requires std::is_pointer_v<T> && std::is_const_v<T>
+        T data() const { return m_data.get(); }
 
-        [[nodiscard]] LexPos size() const {
-            return m_size;
-        }
+        [[nodiscard]] LexPos size() const { return m_size; }
+        // cland-format on
 
     private:
         struct Free {

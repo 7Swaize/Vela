@@ -4,7 +4,6 @@
 #include "backend/block.h"
 #include "backend/select.h"
 #include "keywords_gen.h"
-#include "table_gen.h"
 #include "token.h"
 
 namespace vela::lex {
@@ -42,7 +41,7 @@ namespace vela::lex {
         LexPos len = 0;
 
         while (pos >> kMaskWidthShift < masks.size()) {
-            unsigned offset = pos & kMaskWidth; // pos % kMaskWidth
+            unsigned offset = pos & kMaskWidth - 1; // pos % kMaskWidth
             backend::MaskType target = ~(masks[pos >> kMaskWidthShift] >> offset);
 
             if (unsigned int ones = std::countr_zero(target); ones < kMaskWidth - offset) {
@@ -64,7 +63,7 @@ namespace vela::lex {
             return NPOS;
         }
 
-        backend::MaskType x = masks[word] & (~0u << (pos & kMaskWidth)); // clears bits below pos
+        backend::MaskType x = masks[word] & (std::numeric_limits<backend::MaskType>::max() << (pos & kMaskWidth - 1)); // clears bits below pos
         while (!x) {
             if (++word >= masks.size()) {
                 return NPOS;
@@ -86,7 +85,7 @@ namespace vela::lex {
     }
 
     static VELA_FORCE_INLINE bool bit_set(const std::vector<backend::MaskType> &masks, const LexPos pos) {
-        return masks[pos >> kMaskWidthShift] & (1 << (pos & kMaskWidth));
+        return masks[pos >> kMaskWidthShift] & (backend::MaskType{1} << (pos & kMaskWidth - 1));
     }
 
     static VELA_FORCE_INLINE bool is_digit(const uint8_t c) {
@@ -143,7 +142,7 @@ namespace vela::lex {
         return {
             .start = pos,
             .end = close + 1,
-            .kind = terminated ? TokenKind::Identifier : TokenKind::Error
+            .kind = terminated ? TokenKind::StringLiteral : TokenKind::Error
         };
     }
 
