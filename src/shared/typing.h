@@ -7,12 +7,14 @@
 
 // clang-format off
 
-template <typename T, typename... Ts>
-concept OneOf = (std::same_as<T, Ts> || ...);
+namespace vela::shared {
+    template <typename T, typename... Ts>
+    concept OneOf = (std::same_as<T, Ts> || ...);
 
-template <typename T>
-concept FixedUnsignedInteger =
-    OneOf<std::remove_cvref_t<T>, uint8_t, uint16_t, uint32_t, uint64_t>;
+    template <typename T>
+    concept FixedUnsignedInteger =
+        OneOf<std::remove_cvref_t<T>, uint8_t, uint16_t, uint32_t, uint64_t>;
+} // namespace vela::shared
 
 // clang-format on
 

@@ -16,6 +16,7 @@ target_sources(vela_shared INTERFACE
     BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/src
     FILES
         src/shared/preprocessor.h
+        src/shared/source_buffer.h
         src/shared/typing.h
 )
 
@@ -26,7 +27,6 @@ add_library(vela_lexer STATIC
     src/frontend/lexer/keywords_gen.h
     src/frontend/lexer/table_gen.h
     src/frontend/lexer/token.h
-    src/frontend/lexer/lex_source_buffer.h
 
     src/frontend/lexer/backend/avx2.h
     src/frontend/lexer/backend/block.h

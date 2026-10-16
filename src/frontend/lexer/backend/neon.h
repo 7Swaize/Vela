@@ -1,7 +1,6 @@
 // ReSharper disable CppLocalVariableMayBeConst
 #ifndef VELA_NEON_H
 #define VELA_NEON_H
-#include "frontend/lexer/table_gen.h"
 
 #if !defined(__ARM_NEON)
   #error "ARM NEON dependent header included without ARM NEON enabled"
@@ -10,6 +9,7 @@
 #include <arm_neon.h>
 
 #include "block.h"
+#include "frontend/lexer/table_gen.h"
 #include "shared/preprocessor.h"
 
 namespace vela::lex::neon {

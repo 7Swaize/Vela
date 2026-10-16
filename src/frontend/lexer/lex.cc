@@ -3,11 +3,11 @@
 #include <limits>
 #include <vector>
 
+#include "../../shared/source_buffer.h"
 #include "backend/block.h"
 #include "backend/select.h"
 #include "keywords_gen.h"
 #include "lex.h"
-#include "lex_source_buffer.h"
 #include "token.h"
 
 namespace vela::lex {
@@ -213,7 +213,7 @@ namespace vela::lex {
         return tokens;
     }
 
-    std::vector<Token> lex(const LexSourceBufferView& src) {
+    std::vector<Token> lex(const shared::PaddedSourceBufferView& src) {
 
     }
 
