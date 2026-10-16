@@ -91,7 +91,7 @@ namespace vela::lex::avx2 {
 
         uint32_t second = (pair << 1) | state.pair_carry;
         state.pair_carry = pair >> 31;
-        state.in_string = static_cast<uint16_t>(static_cast<int32_t>(in_str) << 31);
+        state.in_string = static_cast<uint32_t>(static_cast<int32_t>(in_str) >> 31);
 
         // Token starts
         uint32_t prev_ident = (ident << 1) | state.ident_carry;

@@ -106,7 +106,7 @@ namespace vela::lex::neon {
 
         uint16_t second = (pair << 1) | state.pair_carry;
         state.pair_carry = pair >> 15;
-        state.in_string = static_cast<uint16_t>(static_cast<int32_t>(in_str) << 31);
+        state.in_string = static_cast<uint16_t>(static_cast<int16_t>(in_str) >> 15);
 
         // Token starts
         uint16_t prev_ident = (ident << 1) | state.ident_carry;

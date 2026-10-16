@@ -3,6 +3,7 @@
 
 #include <concepts>
 #include <cstdint>
+#include <type_traits>
 
 // clang-format off
 

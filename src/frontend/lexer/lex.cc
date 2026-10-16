@@ -1,9 +1,13 @@
 // ReSharper disable CppLocalVariableMayBeConst
+#include <bit>
+#include <limits>
 #include <vector>
 
 #include "backend/block.h"
 #include "backend/select.h"
 #include "keywords_gen.h"
+#include "lex.h"
+#include "lex_source_buffer.h"
 #include "token.h"
 
 namespace vela::lex {
@@ -209,7 +213,7 @@ namespace vela::lex {
         return tokens;
     }
 
-    static std::vector<Token> lex(const std::string_view src) {
+    std::vector<Token> lex(const LexSourceBufferView& src) {
 
     }
 

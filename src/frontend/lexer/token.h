@@ -1,8 +1,8 @@
 #ifndef VELA_TOKEN_H
 #define VELA_TOKEN_H
 
+#include <cstdint>
 #include <string_view>
-
 
 namespace vela::lex {
 #define VELA_TOKEN_KINDS(X)       \
@@ -97,7 +97,7 @@ namespace vela::lex {
 #undef X
     };
 
-    constexpr std::string_view to_string(TokenKind k) {
+    constexpr std::string_view to_string(const TokenKind k) {
         switch (k) {
 #define X(name, str)      \
     case TokenKind::name: \
@@ -126,7 +126,7 @@ namespace vela::lex {
 #undef X
     };
 
-    constexpr std::string_view to_string(LexErrorKind k) {
+    constexpr std::string_view to_string(const LexErrorKind k) {
         switch (k) {
 #define X(name, str)         \
     case LexErrorKind::name: \
