@@ -4,12 +4,11 @@
 #include <array>
 #include <string_view>
 
-
 namespace vela::lex {
     struct NibblesTable {
-        std::array<uint8_t, 16> high;
-        std::array<uint8_t, 16> low;
-        std::array<uint8_t, 16> ws;
+        alignas(16) std::array<uint8_t, 16> high;
+        alignas(16) std::array<uint8_t, 16> low;
+        alignas(16) std::array<uint8_t, 16> ws;
     };
 } // namespace vela::lex
 

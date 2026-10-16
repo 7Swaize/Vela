@@ -6,6 +6,7 @@
   #error "AVX2 dependent header included without AVX2 enabled"
 #endif
 
+#include <bit>
 #include <immintrin.h>
 
 #include "block.h"
@@ -54,9 +55,9 @@ namespace vela::lex::avx2 {
     }
 
     inline void classify_block(const uint8_t *p, BlockState<uint32_t> &state, BlockMasks<uint32_t> &masks) {
-        const __m256i LO = _mm256_broadcastsi128_si256(_mm_loadu_si128(reinterpret_cast<const __m128i *>(kTables.low.data())));
-        const __m256i HI = _mm256_broadcastsi128_si256(_mm_loadu_si128(reinterpret_cast<const __m128i *>(kTables.high.data())));
-        const __m256i WS = _mm256_broadcastsi128_si256(_mm_loadu_si128(reinterpret_cast<const __m128i *>(kTables.ws.data())));
+        const __m256i LO = _mm256_broadcastsi128_si256(_mm_load_si128(reinterpret_cast<const __m128i *>(kTables.low.data())));
+        const __m256i HI = _mm256_broadcastsi128_si256(_mm_load_si128(reinterpret_cast<const __m128i *>(kTables.high.data())));
+        const __m256i WS = _mm256_broadcastsi128_si256(_mm_load_si128(reinterpret_cast<const __m128i *>(kTables.ws.data())));
         const __m256i NIB = _mm256_set1_epi8(0x0F);
 
         __m256i in = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(p));

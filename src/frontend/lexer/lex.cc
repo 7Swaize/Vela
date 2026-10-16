@@ -3,7 +3,6 @@
 #include <limits>
 #include <vector>
 
-#include "../../shared/source_buffer.h"
 #include "backend/block.h"
 #include "backend/select.h"
 #include "keywords_gen.h"
@@ -195,7 +194,7 @@ namespace vela::lex {
     }
 
     static std::vector<Token> stage2(const uint8_t *source, const LexPos n, const Stage1 &stage) {
-        std::vector<Token> tokens;
+        std::vector<Token> tokens{};
         tokens.reserve(stage.starts.size() + 1);
 
         LexPos cursor = 0;
@@ -213,8 +212,12 @@ namespace vela::lex {
         return tokens;
     }
 
-    std::vector<Token> lex(const shared::PaddedSourceBufferView& src) {
+    std::vector<Token> lex(const shared::FileSourceBuffer<backend::MaskType>& src) {
+        const LexPos nBlocks = src.alignedSize() / sizeof(backend::MaskType);
 
+        Stage1 stage{};
+        stage1(src.data(), nBlocks, stage);
+        return stage2(src.data(), src.rawSize(), stage);
     }
 
 } // namespace vela::lex

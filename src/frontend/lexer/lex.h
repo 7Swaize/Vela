@@ -3,11 +3,12 @@
 
 #include <vector>
 
-#include "../../shared/source_buffer.h"
+#include "../source_buffer.h"
 #include "token.h"
+#include "backend/select.h"
 
 namespace vela::lex {
-    std::vector<Token> lex(const PaddedSourceBufferView& src);
+    std::vector<Token> lex(const shared::FileSourceBuffer<backend::MaskType>& src);
 } // namespace vela::lex
 
 #endif // VELA_LEX_H

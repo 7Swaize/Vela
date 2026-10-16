@@ -15,12 +15,14 @@ target_sources(vela_shared INTERFACE
     FILE_SET HEADERS
     BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/src
     FILES
+        src/shared/helpers.h
         src/shared/preprocessor.h
-        src/shared/source_buffer.h
         src/shared/typing.h
 )
 
 add_library(vela_lexer STATIC
+    src/frontend/source_buffer.h
+
     src/frontend/lexer/lex.cc
     src/frontend/lexer/lex.h
 
