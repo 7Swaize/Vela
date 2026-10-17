@@ -12,6 +12,7 @@ FetchContent_MakeAvailable(googletest)
 
 add_executable(vela_lexer_tests
     unit/lexer/lexer_test.cc
+    unit/lexer/reference_lexer.h
 )
 target_include_directories(vela_lexer_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(vela_lexer_tests PRIVATE vela_lexer GTest::gtest_main)
