@@ -29,6 +29,8 @@
 #include "frontend/lexer/token.h"
 
 namespace vela::unittests::lex {
+    using namespace vela::lex;
+
     inline bool is_alpha(const unsigned char c) {
         return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
     }
