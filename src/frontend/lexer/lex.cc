@@ -201,6 +201,10 @@ namespace vela::lex {
 
         LexPos cursor = 0;
         for (const LexPos pos : stage.starts) {
+            if (VELA_UNLIKELY(pos >= n)) {
+                break;
+            }
+
             if (pos < cursor) {
                 continue; // swallowed by the previous token (e.g. the "5" of "1.5")
             }
@@ -215,11 +219,10 @@ namespace vela::lex {
     }
 
     std::vector<Token> lex(const shared::FileSourceBuffer<backend::MaskType>& src) {
-        const LexPos nBlocks = src.alignedSize() / sizeof(backend::MaskType);
+        const auto nBlocks = static_cast<LexPos>(src.alignedSize() / sizeof(backend::MaskType));
 
         Stage1 stage{};
         stage1(src.data(), nBlocks, stage);
-        return stage2(src.data(), src.rawSize(), stage);
+        return stage2(src.data(), static_cast<LexPos>(src.rawSize()), stage);
     }
-
 } // namespace vela::lex

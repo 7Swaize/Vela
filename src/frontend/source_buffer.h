@@ -61,6 +61,25 @@ namespace vela::shared {
             return FileSourceBuffer(std::move(data), bytesRead, alignedSize, totalSize);
         }
 
+        static std::optional<FileSourceBuffer> from_string(const std::string_view src, const SourceBufferCreationConfig config) {
+            constexpr size_t alignment = alignof(TAlign);
+            const auto rawSize = src.size();
+            const size_t alignedSize = (rawSize + alignment - 1) & ~(alignment - 1);
+            const size_t totalSize = alignedSize + static_cast<size_t>(config.paddingBeyondBoundary);
+
+            if (totalSize > static_cast<size_t>(config.maxFileSize)) {
+                throw std::runtime_error("string source with padding is too big");
+            }
+
+            auto data = adopt_unique_with_deleter<uint8_t[], Free<TAlign> >(
+                static_cast<uint8_t *>(operator new(totalSize, std::align_val_t{alignment})), Free<TAlign>{});
+
+            std::memcpy(data.data(), src.data(), rawSize);
+            std::memset(data.get() + rawSize, config.additionalPaddingValue, totalSize - rawSize);
+
+            return FileSourceBuffer(std::move(data), rawSize, alignedSize, totalSize);
+        }
+
         // clang-format off
         [[nodiscard]] const uint8_t *data() const { return m_data.get(); }
 
