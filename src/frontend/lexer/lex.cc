@@ -15,10 +15,12 @@ namespace vela::lex {
 
     constexpr LexPos NPOS = static_cast<LexPos>(-1);
 
-    struct Stage1 {
-        std::vector<LexPos> starts; // byte offsets of token starts
-        std::vector<backend::MaskType> ident, real_quotes_mask, pair; // per-block masks kept for stage 2
-    };
+    namespace {
+        struct Stage1 {
+            std::vector<LexPos> starts; // byte offsets of token starts
+            std::vector<backend::MaskType> ident, real_quotes_mask, pair; // per-block masks kept for stage 2
+        };
+    }
 
     static void stage1(const uint8_t *source, const LexPos nBlocks, Stage1 &stage) {
         BlockState<backend::MaskType> state{};
