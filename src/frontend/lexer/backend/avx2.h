@@ -60,7 +60,7 @@ namespace vela::lex::avx2 {
         const __m256i WS = _mm256_broadcastsi128_si256(_mm_load_si128(reinterpret_cast<const __m128i *>(kTables.ws.data())));
         const __m256i NIB = _mm256_set1_epi8(0x0F);
 
-        __m256i in = _mm256_load_si256(reinterpret_cast<const __m256i *>(p)); // we can save an unaligned read here
+        __m256i in = _mm256_load_si256(reinterpret_cast<const __m256i *>(p)); // Source buffer is aligned to masktype boundary, so we can do an aligned read here
         __m256i next = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(p + 1));
 
         __m256i hi = _mm256_and_si256(_mm256_srli_epi16(in, 4), NIB);

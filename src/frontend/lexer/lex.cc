@@ -47,7 +47,7 @@ namespace vela::lex {
             unsigned offset = pos & kMaskWidth - 1; // pos % kMaskWidth
             backend::MaskType target = ~(masks[pos >> kMaskWidthShift] >> offset);
 
-            if (unsigned int ones = std::countr_zero(target); ones < kMaskWidth - offset) {
+            if (auto ones = static_cast<unsigned int>(std::countr_zero(target)); ones < kMaskWidth - offset) {
                 return len + ones;
             }
 
@@ -75,7 +75,7 @@ namespace vela::lex {
             x = masks[word];
         }
 
-        return word * kMaskWidth + std::countr_zero(x);
+        return word * kMaskWidth + static_cast<unsigned int>(std::countr_zero(x));
     }
 
     static TokenKind keyword_or_ident(const uint8_t *source, const LexPos len) {
