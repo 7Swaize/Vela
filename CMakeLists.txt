@@ -112,4 +112,5 @@ target_link_libraries(vela INTERFACE vela_lexer)
 
 if (VELA_BUILD_TESTS)
     enable_testing()
+    add_subdirectory(tests)
 endif()

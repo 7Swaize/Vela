@@ -18,6 +18,7 @@
     #define VELA_RESTRICT
 #endif
 
+
 #define VELA_LIKELY(x) __builtin_expect(!!(x), 1)
 #define VELA_UNLIKELY(x) __builtin_expect(!!(x), 0)
 
