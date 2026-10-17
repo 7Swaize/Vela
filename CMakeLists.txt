@@ -8,6 +8,10 @@ if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     set(CMAKE_BUILD_TYPE Release)
 endif ()
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+include(RequireAVX2)
+include(RequireNEON)
+
 option(VELA_BUILD_TESTS "Build Vela tests" OFF)
 option(VELA_SANITIZE_ADDRESS "Enable Address Sanitizer" OFF)
 option(VELA_SANITIZE_UNDEFINED "Enable UndefinedBehaviorSanitizer" OFF)
