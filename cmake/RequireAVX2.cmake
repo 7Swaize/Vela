@@ -43,11 +43,11 @@ macro(find_avx2 target)
 
     if (MSVC)
         if (HAVE_AVX2_EXTENSIONS AND MSVC_VERSION GREATER_EQUAL 1800)
-            target_compile_options(${target} PRIVATE /arch:AVX2)
+            target_compile_options(${target} INTERFACE /arch:AVX2)
         endif ()
     else ()
         if(HAVE_AVX2_EXTENSIONS)
-            target_compile_options(${target} PRIVATE -march=x86-64-v3)
+            target_compile_options(${target} INTERFACE -march=x86-64-v3)
         endif ()
     endif ()
 
