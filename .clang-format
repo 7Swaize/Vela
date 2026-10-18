@@ -11,7 +11,7 @@ AlignOperands: true
 AlignTrailingComments: false
 AllowShortFunctionsOnASingleLine: Empty
 AlwaysBreakTemplateDeclarations: Yes
-BraceWrapping: 
+BraceWrapping:
   AfterCaseLabel: false
   AfterClass: false
   AfterControlStatement: false
@@ -32,10 +32,10 @@ BreakBeforeBinaryOperators: NonAssignment
 BreakBeforeBraces: Custom
 BreakConstructorInitializers: AfterColon
 BreakConstructorInitializersBeforeComma: false
-ColumnLimit: 500
+ColumnLimit: 0
 ConstructorInitializerAllOnOneLineOrOnePerLine: false
 ContinuationIndentWidth: 8
-IncludeCategories: 
+IncludeCategories:
   - Regex: '^<.*'
     Priority: 1
   - Regex: '^".*'
@@ -54,7 +54,7 @@ NamespaceIndentation: All
 RemoveSemicolon: true
 SpaceAfterCStyleCast: true
 SpaceAfterTemplateKeyword: false
-SpaceBeforeParensOptions: 
+SpaceBeforeParensOptions:
   AfterRequiresInClause: true
   AfterControlStatements: true
   AfterForeachMacros: true
@@ -70,7 +70,7 @@ SpacesInAngles: false
 SpacesInConditionalStatement: false
 SpacesInCStyleCastParentheses: false
 SpacesInParentheses: false
-StatementMacros: 
+StatementMacros:
   - _EXTERN_CXX_WORKAROUND
   - _END_EXTERN_CXX_WORKAROUND
   - _STD_BEGIN

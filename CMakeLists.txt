@@ -105,6 +105,7 @@ target_include_directories(vela_lexer PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_link_libraries(vela_lexer
     PUBLIC vela_shared
     PRIVATE vela_compile_options
+
 )
 
 add_library(vela INTERFACE)
@@ -113,4 +114,4 @@ target_link_libraries(vela INTERFACE vela_lexer)
 if (VELA_BUILD_TESTS)
     enable_testing()
     add_subdirectory(tests)
-endif()
+endif ()

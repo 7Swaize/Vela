@@ -15,5 +15,6 @@ macro(find_neon target)
         message(FATAL_ERROR "Vela requires NEON support on ${CMAKE_SYSTEM_PROCESSOR}.")
     endif ()
 
+    target_compile_definitions(${target} INTERFACE VELA_SUPPORTS_NEON)
     set(CMAKE_REQUIRED_QUIET ${_VELA_QUIET_OLD})
 endmacro()

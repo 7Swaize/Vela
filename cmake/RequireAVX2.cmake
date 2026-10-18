@@ -1,5 +1,8 @@
 # See ref: https://github.com/microsoft/APSI/blob/main/cmake/FindAVX.cmake
 
+# Cryptographic instructions not associated with general computing are not included in the x86-64-v3 psABI.
+# See ref: https://en.opensuse.org/X86-64_microarchitecture_levels
+
 macro(find_avx2 target)
     set(CMAKE_REQUIRED_QUIET_OLD ${CMAKE_REQUIRED_QUIET})
     set(CMAKE_REQUIRED_FLAGS_OLD ${CMAKE_REQUIRED_FLAGS})
@@ -10,7 +13,7 @@ macro(find_avx2 target)
     if(MSVC AND MSVC_VERSION GREATER_EQUAL 1800)
         set(CMAKE_REQUIRED_FLAGS "/arch:AVX2")
     elseif(NOT MSVC)
-        set(CMAKE_REQUIRED_FLAGS "-march=x86-64-v3")
+        set(CMAKE_REQUIRED_FLAGS "-march=x86-64-v3 -mpclmul")
     endif()
 
     check_cxx_source_runs("
@@ -44,10 +47,12 @@ macro(find_avx2 target)
     if (MSVC)
         if (HAVE_AVX2_EXTENSIONS AND MSVC_VERSION GREATER_EQUAL 1800)
             target_compile_options(${target} INTERFACE /arch:AVX2)
+            target_compile_definitions(${target} INTERFACE VELA_SUPPORTS_AVX2)
         endif ()
     else ()
         if(HAVE_AVX2_EXTENSIONS)
-            target_compile_options(${target} INTERFACE -march=x86-64-v3)
+            target_compile_options(${target} INTERFACE -march=x86-64-v3 -mpclmul)
+            target_compile_definitions(${target} INTERFACE VELA_SUPPORTS_AVX2)
         endif ()
     endif ()
 

@@ -2,7 +2,7 @@
 #ifndef VELA_AVX2_H
 #define VELA_AVX2_H
 
-#if !defined(__AVX2__)
+#if !defined(VELA_SUPPORTS_AVX2)
   #error "AVX2 dependent header included without AVX2 enabled"
 #endif
 

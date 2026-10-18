@@ -3,6 +3,18 @@
 #include <cstring>
 #include "token.h"
 
+#if defined(__clang__)
+    #pragma clang diagnostic push
+    #pragma clang diagnostic ignored "-Weverything"
+#elif defined(__GNUC__)
+    #pragma GCC diagnostic push
+    #pragma GCC diagnostic ignored "-Wsign-conversion"
+    #pragma GCC diagnostic ignored "-Wmissing-field-initializers"
+    #pragma GCC diagnostic ignored "-Wunused-function"
+#elif defined(_MSC_VER)
+    #pragma warning(push, 0)
+#endif
+
 namespace vela::lex {
 
 %}
@@ -40,3 +52,11 @@ string, TokenKind::KwString
 %%
 
 }
+
+#if defined(__clang__)
+    #pragma clang diagnostic pop
+#elif defined(__GNUC__)
+    #pragma GCC diagnostic pop
+#elif defined(_MSC_VER)
+    #pragma warning(pop)
+#endif

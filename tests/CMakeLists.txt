@@ -13,7 +13,7 @@ add_executable(vela_lexer_tests
     unit/lexer/reference_lexer.h
 )
 target_include_directories(vela_lexer_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(vela_lexer_tests PRIVATE vela_lexer GTest::gtest_main)
+target_link_libraries(vela_lexer_tests PRIVATE vela_lexer vela_compile_options GTest::gtest_main)
 
 include(GoogleTest)
 gtest_discover_tests(vela_lexer_tests)

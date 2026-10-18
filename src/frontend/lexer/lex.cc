@@ -46,7 +46,7 @@ namespace vela::lex {
         LexPos len = 0;
 
         while (pos >> kMaskWidthShift < masks.size()) {
-            unsigned offset = pos & kMaskWidth - 1; // pos % kMaskWidth
+            unsigned offset = pos & (kMaskWidth - 1); // pos % kMaskWidth
             backend::MaskType target = ~(masks[pos >> kMaskWidthShift] >> offset);
 
             if (auto ones = static_cast<unsigned int>(std::countr_zero(target)); ones < kMaskWidth - offset) {
@@ -68,7 +68,7 @@ namespace vela::lex {
             return NPOS;
         }
 
-        backend::MaskType x = masks[word] & (std::numeric_limits<backend::MaskType>::max() << (pos & kMaskWidth - 1)); // clears bits below pos
+        backend::MaskType x = masks[word] & (std::numeric_limits<backend::MaskType>::max() << (pos & (kMaskWidth - 1))); // clears bits below pos
         while (!x) {
             if (++word >= masks.size()) {
                 return NPOS;
@@ -90,7 +90,7 @@ namespace vela::lex {
     }
 
     static VELA_FORCE_INLINE bool bit_set(const std::vector<backend::MaskType> &masks, const LexPos pos) {
-        return masks[pos >> kMaskWidthShift] & (backend::MaskType{1} << (pos & kMaskWidth - 1));
+        return masks[pos >> kMaskWidthShift] & (backend::MaskType{1} << (pos & (kMaskWidth - 1)));
     }
 
     static VELA_FORCE_INLINE bool is_digit(const uint8_t c) {

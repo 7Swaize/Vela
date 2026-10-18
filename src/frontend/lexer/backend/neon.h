@@ -2,7 +2,7 @@
 #ifndef VELA_NEON_H
 #define VELA_NEON_H
 
-#if !defined(__ARM_NEON)
+#if !defined(VELA_SUPPORTS_NEON)
   #error "ARM NEON dependent header included without ARM NEON enabled"
 #endif
 

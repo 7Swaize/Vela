@@ -41,7 +41,7 @@ namespace vela::lex::detail {
                 cols |= 1u << (static_cast<uint8_t>(c) & 0x0F);
             }
 
-            for (int i = 0; i < 16; ++i) {
+            for (std::size_t i = 0; i < 16; ++i) {
                 if (rows >> i & 1) {
                     table.high[i] |= static_cast<uint8_t>(1u << bit);
                 }

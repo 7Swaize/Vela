@@ -94,7 +94,7 @@ namespace vela::unittests::lex {
         }
     }
 
-    inline std::vector<Token> lex(const std::string_view s) {
+    inline std::vector<Token> lex_from_reference(const std::string_view s) {
         std::vector<Token> out;
         const auto n = static_cast<LexPos>(s.size());
         LexPos i = 0;

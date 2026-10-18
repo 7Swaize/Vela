@@ -1,6 +1,7 @@
 #ifndef VELA_HELPERS_H
 #define VELA_HELPERS_H
 
+#include <cstdlib>
 #include <cstddef>
 #include <memory>
 #include <new>
@@ -23,24 +24,25 @@ namespace vela::shared {
     }
     // clang-format on
 
-    template <typename T, std::size_t Alignment>
+    template<typename T, std::size_t Alignment>
     struct AlignedAllocator {
         using value_type = T;
 
         AlignedAllocator() noexcept = default;
 
-        template <class U>
+        template<class U>
         explicit constexpr AlignedAllocator(const AlignedAllocator<U, Alignment> &) noexcept { }
 
         // https://stackoverflow.com/questions/66891368/template-parametric-type-allocator-in-c
-        template <class U>
+        template<class U>
         struct rebind {
             using other = AlignedAllocator<U, Alignment>;
         };
 
-        T* allocate(std::size_t n) {
-            void* ptr = nullptr;
-#if defined(_MSC_VER)
+        T *allocate(const std::size_t n) {
+            void *ptr = nullptr;
+
+#if defined(_MSC_VER) || defined(_WIN32)
             ptr = _aligned_malloc(n * sizeof(T), Alignment);
             if (!ptr) {
                 throw std::bad_alloc();
@@ -50,11 +52,11 @@ namespace vela::shared {
                 throw std::bad_alloc();
             }
 #endif
-            return static_cast<T*>(ptr);
+            return static_cast<T *>(ptr);
         }
 
-        void deallocate(T* p, std::size_t) noexcept {
-#if defined(_MSC_VER)
+        void deallocate(T *p, std::size_t) noexcept {
+#if defined(_MSC_VER) || defined(_WIN32)
             _aligned_free(p);
 #else
             free(p);

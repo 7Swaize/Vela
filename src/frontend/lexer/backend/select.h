@@ -2,10 +2,10 @@
 #define VELA_SELECT_H
 
 // clang-format off
-#if defined(__AVX2__)
+#if defined(VELA_SUPPORTS_AVX2)
     #include "avx2.h"
     namespace vela::lex { namespace backend = avx2; }
-#elif defined(__ARM_NEON)
+#elif defined(VELA_SUPPORTS_NEON)
     #include "neon.h"
     namespace vela::lex { namespace backend = neon; }
 #endif

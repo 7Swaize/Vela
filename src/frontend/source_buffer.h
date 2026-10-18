@@ -7,7 +7,6 @@
 #include <fstream>
 #include <memory>
 #include <new>
-#include <optional>
 #include <stdexcept>
 #include <string>
 
@@ -26,7 +25,7 @@ namespace vela::shared {
         }
     class FileSourceBuffer {
     public:
-        static std::optional<FileSourceBuffer> load(const char *path, const SourceBufferCreationConfig config) {
+        static FileSourceBuffer load(const char *path, const SourceBufferCreationConfig config) {
             std::ifstream file(path, std::ios::in | std::ios::binary | std::ios::ate);
             if (!file) {
                 throw std::runtime_error("failed to open file: " + std::string(path));
@@ -61,7 +60,7 @@ namespace vela::shared {
             return FileSourceBuffer(std::move(data), bytesRead, alignedSize, totalSize);
         }
 
-        static std::optional<FileSourceBuffer> from_string(const std::string_view src, const SourceBufferCreationConfig config) {
+        static FileSourceBuffer from_string(const std::string_view src, const SourceBufferCreationConfig config) {
             constexpr size_t alignment = alignof(TAlign);
             const auto rawSize = src.size();
             const size_t alignedSize = (rawSize + alignment - 1) & ~(alignment - 1);
@@ -74,7 +73,7 @@ namespace vela::shared {
             auto data = adopt_unique_with_deleter<uint8_t[], Free<TAlign> >(
                 static_cast<uint8_t *>(operator new(totalSize, std::align_val_t{alignment})), Free<TAlign>{});
 
-            std::memcpy(data.data(), src.data(), rawSize);
+            std::memcpy(data.get(), src.data(), rawSize);
             std::memset(data.get() + rawSize, config.additionalPaddingValue, totalSize - rawSize);
 
             return FileSourceBuffer(std::move(data), rawSize, alignedSize, totalSize);
