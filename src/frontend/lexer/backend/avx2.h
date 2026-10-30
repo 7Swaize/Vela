@@ -65,8 +65,8 @@ namespace vela::lex::avx2 {
         __m256i next = _mm256_loadu_si256(reinterpret_cast<const __m256i *>(p + 1));
 
         __m256i hi = _mm256_and_si256(_mm256_srli_epi16(in, 4), NIB);
-        __m256i lo = in; // highest bit is always 0 for ASCII (no extension) char set
-        __m256i cls = _mm256_and_si256(_mm256_shuffle_epi8(HI, hi), _mm256_shuffle_epi8(LO, lo));
+        // highest bit is always 0 for ASCII (no extension) char set
+        __m256i cls = _mm256_and_si256(_mm256_shuffle_epi8(HI, hi), _mm256_shuffle_epi8(LO, in));
 
         uint32_t ident = any_bits(cls, kIndentBits);
         uint32_t punct = any_bits(cls, kPunctBits);
