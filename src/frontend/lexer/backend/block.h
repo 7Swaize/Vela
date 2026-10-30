@@ -7,6 +7,7 @@
 namespace vela::lex {
     constexpr inline uint8_t kIndentBits = 0x0F;
     constexpr inline uint8_t kPunctBits = 0x70;
+    constexpr inline uint8_t kDigitBits = 0x08;
 
     template <shared::FixedUnsignedInteger T>
     struct BlockState {
@@ -18,7 +19,7 @@ namespace vela::lex {
 
     template <shared::FixedUnsignedInteger T>
     struct BlockMasks {
-        T ident, punct, ws, quote, bslash, escaped, real_quotes,
+        T ident, punct, digits, ws, quote, bslash, escaped, real_quotes,
                 in_str, pair, second, str_start, bad;
         LexPos starts;
     };

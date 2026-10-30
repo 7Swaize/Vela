@@ -2,6 +2,7 @@
 #define VELA_TOKEN_H
 
 #include <cstdint>
+#include <format>
 #include <string_view>
 
 namespace vela::lex {
@@ -119,6 +120,10 @@ namespace vela::lex {
 
         constexpr bool operator==(const Token &) const = default;
     };
+
+    inline std::string to_string(const Token &tok) {
+        return std::format( "{{start: {}, end: {}, kind: {}}}", tok.start, tok.end, to_string(tok.kind));
+    }
 
     enum class LexErrorKind : uint8_t {
 #define X(name, str) name,

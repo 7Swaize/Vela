@@ -7,10 +7,10 @@
 #include <string_view>
 #include <vector>
 
-#include "frontend/lexer/backend/avx2.h"
 #include "frontend/lexer/lex.h"
 #include "frontend/source_buffer.h"
 #include "reference_lexer.h"
+#include "shared/helpers.h"
 
 namespace {
     using namespace vela::lex;
@@ -26,7 +26,8 @@ namespace {
         .maxFileSize = std::numeric_limits<backend::MaskType>::max(),
     };
 
-    constexpr std::array<std::string_view, 27> kDifferentialTestCases = {
+    constexpr std::array<std::string_view, 28> kDifferentialTestCases = {
+        "x = 1.5; y = 12ab; z = 1.5x; w = 1.2.3; v = 1.;",
         "",
         " ",
         "x",
@@ -57,7 +58,7 @@ namespace {
     };
 
     TokenVec inv_real(const std::string_view src) {
-        return lex(vela::shared::FileSourceBuffer<backend::MaskType>::from_string(src, kBufferCreationConfig));
+        return lex(vela::shared::FileSourceBuffer<backend::SimdWord>::from_string(src, kBufferCreationConfig));
     }
 
     TokenVec inv_ref(const std::string_view src) {
@@ -115,13 +116,19 @@ namespace {
         const TokenVec want = vela::unittests::lex::lex_from_reference(src);
 
         if (const std::string problem = malformed(src, got); !problem.empty()) {
-            return testing::AssertionFailure() << "malformed token stream: " << problem;
+            return testing::AssertionFailure()
+                    << "malformed token stream: " << problem
+                    << "\ninput: \"" << src << "\""
+                    << "\ngot:  " << vela::shared::collection_to_string(got)
+                    << "\nwant: " << vela::shared::collection_to_string(want);
         }
 
         if (got != want) {
             return testing::AssertionFailure()
-                   << "tokens differ from reference (got " << got.size()
-                   << ", want " << want.size() << ") for input: \"" << src << "\"";
+                    << "tokens differ from reference"
+                    << "\ninput: \"" << src << "\""
+                    << "\ngot:  " << vela::shared::collection_to_string(got)
+                    << "\nwant: " << vela::shared::collection_to_string(want);
         }
 
         return testing::AssertionSuccess();
@@ -196,11 +203,11 @@ TEST(ReferenceLexer, Operators) {
 }
 
 TEST(ReferenceLexer, MalformedOperatorChains) {
-    // An operator directly followed by another operator is malformed: first byte is an error, lexing resumes at the next byte.
-    EXPECT_EQ(inv_ref("==="), (TokenVec{{0, 1, K::Error}, {1, 3, K::EqEq}, {3, 3, K::Eof}}));
-    EXPECT_EQ(inv_ref("<<<"), (TokenVec{{0, 1, K::Error}, {1, 3, K::LtLt}, {3, 3, K::Eof}}));
-    EXPECT_EQ(inv_ref("<<="), (TokenVec{{0, 1, K::Error}, {1, 3, K::LtEq}, {3, 3, K::Eof}}));
-    EXPECT_EQ(inv_ref("&&&"), (TokenVec{{0, 1, K::Error}, {1, 3, K::AmpAmp}, {3, 3, K::Eof}}));
+    // An operator directly followed by another operator is malformed: all bytes defining the operator are errored, and lexing resumes after block
+    EXPECT_EQ(inv_ref("==="), (TokenVec{{0, 3, K::Error}, {3, 3, K::Eof}}));
+    EXPECT_EQ(inv_ref("<<<"), (TokenVec{{0, 3, K::Error}, {3, 3, K::Eof}}));
+    EXPECT_EQ(inv_ref("<<="), (TokenVec{{0, 3, K::Error}, {3, 3, K::Eof}}));
+    EXPECT_EQ(inv_ref("&&&"), (TokenVec{{0, 3, K::Error}, {3, 3, K::Eof}}));
 }
 
 TEST(ReferenceLexer, SingleCharTokens) {

@@ -10,7 +10,7 @@
 #include "token.h"
 
 namespace vela::lex {
-    constexpr unsigned int kMaskWidth = sizeof(backend::MaskType) * 8;
+    constexpr unsigned int kMaskWidth = sizeof(backend::SimdWord);
     constexpr unsigned int kMaskWidthShift = std::countr_zero(kMaskWidth);
 
     constexpr LexPos NPOS = static_cast<LexPos>(-1);
@@ -18,7 +18,7 @@ namespace vela::lex {
     namespace {
         struct Stage1 {
             std::vector<LexPos> starts; // byte offsets of token starts
-            std::vector<backend::MaskType> ident, real_quotes_mask, pair; // per-block masks kept for stage 2
+            std::vector<backend::MaskType> ident, digits, real_quotes_mask, pair; // per-block masks kept for stage 2
         };
     }
 
@@ -30,6 +30,7 @@ namespace vela::lex {
             backend::classify_block(source + kMaskWidth * i, state, masks);
 
             stage.ident.push_back(masks.ident);
+            stage.digits.push_back(masks.digits);
             stage.real_quotes_mask.push_back(masks.real_quotes);
             stage.pair.push_back(masks.pair);
 
@@ -97,14 +98,6 @@ namespace vela::lex {
         return c >= '0' && c <= '9';
     }
 
-    static VELA_FORCE_INLINE bool is_pair(const uint8_t a, const uint8_t b) {
-        return ((a == '=' || a == '<' || a == '>' || a == '!') && b == '=')
-               || (a == '&' && b == '&')
-               || (a == '|' && b == '|')
-               || (a == '<' && b == '<')
-               || (a == '>' && b == '>');
-    }
-
     // Should compile to a lookup table
     // Clang may compile to a jump table, so we should force a lookup table in that event
     static TokenKind classify_single_kind(const uint8_t c) {
@@ -142,40 +135,61 @@ namespace vela::lex {
 
     static Token lex_string(const Stage1 &stage, const LexPos pos, const LexPos n) {
         LexPos close = next_set(stage.real_quotes_mask, pos + 1);
-        const bool terminated = close != NPOS && close < n;
+
+        // Unclosed strings cause lexing to bail
+        if (close == NPOS || close >= n) {
+            return {
+                .start = pos,
+                .end = n,
+                .kind = TokenKind::Error
+            };
+        }
 
         return {
             .start = pos,
             .end = close + 1,
-            .kind = terminated ? TokenKind::StringLiteral : TokenKind::Error
+            .kind = TokenKind::StringLiteral
         };
     }
 
     static Token lex_word(const uint8_t *source, const Stage1 &stage, const LexPos pos) {
-        LexPos end = pos + run_len(stage.ident, pos);
+        const LexPos iend = pos + run_len(stage.ident, pos);
 
         if (!is_digit(source[pos])) {
             return {
                 .start = pos,
-                .end = end,
-                .kind = keyword_or_ident(source + pos, end - pos)
+                .end = iend,
+                .kind = keyword_or_ident(source + pos, iend - pos)
             };
         }
 
-        TokenKind kind = TokenKind::IntLiteral;
-        if (source[end] == '.' && is_digit(source[end + 1])) {
-            end += 1 + run_len(stage.ident, end + 1);
-            kind = TokenKind::FloatLiteral;
+        // Something like "12ab" is malformed
+        if (run_len(stage.digits, pos) != iend - pos) {
+            return {.start = pos, .end = iend, .kind = TokenKind::Error};
         }
 
-        return {.start = pos, .end = end, .kind = kind};
+        if (source[iend] == '.' && is_digit(source[iend + 1])) {
+            const LexPos fstart = iend + 1;
+            const LexPos fend = fstart + run_len(stage.ident, fstart);
+
+            // Something like 12.1.2 is malformed
+            const TokenKind kind = run_len(stage.digits, fstart) == fend - fstart
+                ? TokenKind::FloatLiteral
+                : TokenKind::Error;
+
+            return {.start = pos, .end = fend, .kind = kind};
+        }
+
+        return {.start = pos, .end = iend, .kind = TokenKind::IntLiteral};
     }
 
-    static Token lex_pair(const uint8_t *source, const LexPos pos) {
+    static Token lex_pair(const uint8_t *source, const Stage1& stage, const LexPos pos) {
         // A pair directly followed by another pair (e.g. "===") is malformed.
-        if (is_pair(source[pos + 1], source[pos + 2])) {
-            return {.start = pos, .end = pos + 1, .kind = TokenKind::Error};
+        if (bit_set(stage.pair, pos + 1)) {
+            LexPos end = pos + run_len(stage.pair, pos) + 1;
+            return {.start = pos, .end = end, .kind = TokenKind::Error};
         }
+
         return {
             .start = pos,
             .end = pos + 2,
@@ -186,7 +200,7 @@ namespace vela::lex {
     static Token lex_token(const uint8_t *source, const LexPos n, const Stage1 &stage, const LexPos pos) {
         if (bit_set(stage.real_quotes_mask, pos)) return lex_string(stage, pos, n);
         if (bit_set(stage.ident, pos)) return lex_word(source, stage, pos);
-        if (bit_set(stage.pair, pos)) return lex_pair(source, pos);
+        if (bit_set(stage.pair, pos)) return lex_pair(source, stage, pos);
 
         return {
             .start = pos,
@@ -218,8 +232,8 @@ namespace vela::lex {
         return tokens;
     }
 
-    std::vector<Token> lex(const shared::FileSourceBuffer<backend::MaskType>& src) {
-        const auto nBlocks = static_cast<LexPos>(src.alignedSize() / sizeof(backend::MaskType));
+    std::vector<Token> lex(const shared::FileSourceBuffer<backend::SimdWord>& src) {
+        const auto nBlocks = static_cast<LexPos>(src.alignedSize() / sizeof(backend::SimdWord));
 
         Stage1 stage{};
         stage1(src.data(), nBlocks, stage);

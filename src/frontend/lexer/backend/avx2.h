@@ -16,6 +16,7 @@
 
 namespace vela::lex::avx2 {
     using MaskType = uint32_t;
+    using SimdWord = __m256i;
 
     // clang-format off
     VELA_FORCE_INLINE uint32_t movemask(const __m256i v) noexcept { return static_cast<uint32_t>(_mm256_movemask_epi8(v)); }
@@ -69,6 +70,7 @@ namespace vela::lex::avx2 {
 
         uint32_t ident = any_bits(cls, kIndentBits);
         uint32_t punct = any_bits(cls, kPunctBits);
+        uint32_t digits = any_bits(cls, kDigitBits);
         uint32_t ws = movemask(_mm256_cmpeq_epi8(_mm256_shuffle_epi8(WS, in), in));
         uint32_t quote = eq(in, '"');
         uint32_t bs = eq(in, '\\');
@@ -102,6 +104,7 @@ namespace vela::lex::avx2 {
         masks = {
             .ident = ident,
             .punct = punct,
+            .digits = digits,
             .ws = ws,
             .quote = quote,
             .bslash = bs,

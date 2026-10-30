@@ -14,8 +14,8 @@
 //       Newlines are allowed. Unterminated -> Error from the opening quote to EOF.
 //   * Two-byte operators: == != <= >= << >> && ||
 //       If an operator is immediately followed by another operator
-//       (e.g. "===", "<<<", "&&&"), the first byte is an Error and lexing
-//       resumes at the next byte.
+//       (e.g. "===", "<<<", "&&&"), the entire byte sequence is an error,
+//       and lexing resumes at the end of the malformed oeprator block.
 //   * Single-byte tokens come from VELA_SINGLE_CHAR_TOKENS.
 //   * Any other byte (':', '?', '\\' outside a string, NUL, bytes >= 0x80, ...)
 //       is a one-byte Error token.
@@ -63,7 +63,7 @@ namespace vela::unittests::lex {
         return it == kKeywords.end() ? TokenKind::Identifier : it->second;
     }
 
-    inline bool is_operator_at(const std::string_view s, const size_t i) {
+    inline bool is_operator_pair_at(const std::string_view s, const size_t i) {
         if (i + 1 >= s.size()) return false;
         const char a = s[i], b = s[i + 1];
         return ((a == '=' || a == '<' || a == '>' || a == '!') && b == '=')
@@ -161,10 +161,14 @@ namespace vela::unittests::lex {
                 continue;
             }
 
-            if (is_operator_at(s, i)) {
-                if (is_operator_at(s, i + 1)) {
-                    out.push_back({i, i + 1, TokenKind::Error});
-                    i += 1;
+            if (is_operator_pair_at(s, i)) {
+                if (is_operator_pair_at(s, i + 1)) {
+                    LexPos j = i + 1;
+                    while (is_operator_pair_at(s, j)) {
+                        ++j;
+                    }
+                    out.push_back({i, ++j, TokenKind::Error});
+                    i = j;
                 } else {
                     out.push_back({i, i + 2, operator_kind(s[i], s[i + 1])});
                     i += 2;
