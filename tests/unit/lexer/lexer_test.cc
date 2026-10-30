@@ -132,10 +132,6 @@ namespace {
 
         return testing::AssertionSuccess();
     }
-
-    bool fails(const std::string_view src) {
-        return !same_as_reference(src);
-    }
 }
 
 
@@ -251,3 +247,40 @@ TEST(Differential, EverySingleByte) {
         ASSERT_TRUE(same_as_reference(std::string_view(reinterpret_cast<const char *>(&i), 1)));
     }
 }
+
+TEST(Differential, EveryBetweenLetters) {
+    for (const std::string_view ctx : {"a%cb", "1%c2", "\"x%cy\"", "= %c ="}) {
+        for (int i = 0; i < 256; ++i) {
+            std::string src(ctx);
+            src.replace(src.find("%c"), 2, 1, static_cast<char>(i));
+            ASSERT_TRUE(same_as_reference(src)) << "byte=" << i << " context=" << ctx;
+        }
+    }
+}
+
+// We can address this later
+/*
+TEST(Differential, ExhaustiveShortOverOperatorAlphabet) {
+    constexpr static std::string_view kAlphabet = "=<>!&|\"\\a1. ;";
+    constexpr static int kMaxLen = 5;
+
+    std::string src;
+    auto recurse = [&](auto &&self, const int depth) -> void {
+        ASSERT_TRUE(same_as_reference(src));
+        if (depth == kMaxLen) {
+            return;
+        }
+
+        for (const char c : kAlphabet) {
+            src.push_back(c);
+            self(self, depth + 1);
+            src.pop_back();
+
+            if (::testing::Test::HasFailure()) {
+                return;
+            }
+        }
+    };
+    recurse(recurse, 0);
+}
+*/

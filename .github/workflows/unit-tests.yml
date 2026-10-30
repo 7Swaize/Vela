@@ -1,0 +1,46 @@
+name: Unit Tests
+
+on:
+  push:
+    branches: [dev]
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  build-and-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: linux-x64-avx2,   os: ubuntu-latest,     arch: x64 }
+          - { name: windows-x64-avx2, os: windows-latest,    arch: x64 }
+          - { name: linux-arm64-neon, os: ubuntu-24.04-arm,  arch: arm64 }
+          - { name: macos-arm64-neon, os: macos-latest,      arch: arm64 }
+        build_type: [Debug]
+    name: ${{ matrix.name }} (${{ matrix.build_type }})
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Verify AVX2 (Linux)
+        if: matrix.arch == 'x64' && runner.os == 'Linux'
+        run: grep -m1 -qw avx2 /proc/cpuinfo || (echo "No AVX2 on this runner" && exit 1)
+
+      - name: Verify AVX2 (Windows)
+        if: matrix.arch == 'x64' && runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Add-Type -MemberDefinition '[DllImport("kernel32.dll")] public static extern bool IsProcessorFeaturePresent(int f);' -Name K -Namespace W
+          # 40 = PF_AVX2_INSTRUCTIONS_AVAILABLE
+          if (-not [W.K]::IsProcessorFeaturePresent(40)) { Write-Error "No AVX2"; exit 1 }
+
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} -DVELA_BUILD_TESTS=1
+
+      - name: Build
+        run: cmake --build build --config ${{ matrix.build_type }} --parallel
+
+      - name: Test
+        working-directory: build
+        run: ctest --build-config ${{ matrix.build_type }} --output-on-failure
