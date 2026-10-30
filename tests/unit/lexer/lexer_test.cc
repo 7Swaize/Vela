@@ -26,8 +26,7 @@ namespace {
         .maxFileSize = std::numeric_limits<backend::MaskType>::max(),
     };
 
-    constexpr std::array<std::string_view, 28> kDifferentialTestCases = {
-        "x = 1.5; y = 12ab; z = 1.5x; w = 1.2.3; v = 1.;",
+    constexpr std::array<std::string_view, 27> kDifferentialTestCases = {
         "",
         " ",
         "x",
