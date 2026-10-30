@@ -153,7 +153,7 @@ namespace vela::lex {
 
 
     constexpr inline int kLongestKeyword = [] {
-        int max_len = 0;
+        int max_len = INT_MIN;
 
 #define X(name, str)                                                    \
     if constexpr (std::string_view(#name).starts_with("Kw")) {          \
@@ -169,7 +169,7 @@ namespace vela::lex {
     }();
 
     constexpr inline int kShortestKeyword = [] {
-        int min_len = 0;
+        int min_len = INT_MAX;
 
 #define X(name, str)                                                    \
     if constexpr (std::string_view(#name).starts_with("Kw")) {          \
