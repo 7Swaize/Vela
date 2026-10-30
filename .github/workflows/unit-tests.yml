@@ -2,7 +2,7 @@ name: Unit Tests
 
 on:
   push:
-    branches: [dev]
+    branches: [dev, main]
   pull_request:
     types: [opened, synchronize, reopened]
 
