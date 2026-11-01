@@ -5,6 +5,7 @@
 #include <memory>
 #include <new>
 #include <ranges>
+#include <type_traits>
 
 #include "preprocessor.h"
 
