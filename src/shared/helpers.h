@@ -2,6 +2,7 @@
 #define VELA_HELPERS_H
 
 #include <cstddef>
+#include <format>
 #include <memory>
 #include <new>
 #include <ranges>
