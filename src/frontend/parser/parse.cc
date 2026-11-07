@@ -17,7 +17,12 @@ namespace vela::parse {
             }
             std::span<ast::Decl *const> decls = take<ast::Decl>(mark);
             ast::Program *program = alloc_node<ast::Program>(ast::Span{0, peek().end}, decls);
-            return {.program = program, .nodeCount = m_nextId};
+
+            return {
+                .program = program,
+                .nodeCount = m_nextId,
+                .diagnostics = m_diagnostics
+            };
         }
 
     private:
@@ -115,6 +120,77 @@ namespace vela::parse {
 
             return kind(1) == lex::TokenKind::Identifier
                 || (kind(1) == lex::TokenKind::LBracket && kind(2) == lex::TokenKind::RBracket);
+        }
+
+        void synchronize_stmt() {
+            int depth = 0;
+            while (kind() != lex::TokenKind::Eof) {
+                switch (kind()) {
+                    case lex::TokenKind::Semicolon:
+                        if (depth == 0) {
+                            next();
+                            return;
+                        }
+                        break;
+                    case lex::TokenKind::LBrace:
+                        ++depth;
+                        break;
+                    case lex::TokenKind::RBrace:
+                        if (depth == 0) {
+                            return;
+                        }
+                        --depth;
+                        break;
+                    case lex::TokenKind::KwIf:
+                    case lex::TokenKind::KwFor:
+                    case lex::TokenKind::KwWhile:
+                    case lex::TokenKind::KwReturn:
+                    case lex::TokenKind::KwFn:
+                    case lex::TokenKind::KwStruct:
+                    case lex::TokenKind::KwClass:
+                        if (depth == 0) {
+                            return;
+                        }
+                        break;
+                    default:
+                        break;
+                }
+                next();
+            }
+        }
+
+        void synchronize_top() {
+            int depth = 0;
+            while (kind() != lex::TokenKind::Eof) {
+                switch (kind()) {
+                    case lex::TokenKind::KwStruct:
+                    case lex::TokenKind::KwClass:
+                    case lex::TokenKind::KwFn:
+                        if (depth == 0) {
+                            return;
+                        }
+                        break;
+                    case lex::TokenKind::Semicolon:
+                        if (depth == 0) {
+                            next();
+                            return;
+                        }
+                        break;
+                    case lex::TokenKind::LBrace:
+                        ++depth;
+                        break;
+                    case lex::TokenKind::RBrace:
+                        if (depth > 0 && --depth == 0) {
+                            next();
+                            return;
+                        }
+
+                        break;
+                    default:
+                        break;
+                }
+                next();
+            }
         }
 
         ast::Decl *declaration() {
@@ -528,8 +604,7 @@ namespace vela::parse {
         }
 
         ast::Expr *primary() {
-            const lex::Token token = peek();
-            switch (token.kind) {
+            switch (const lex::Token token = peek(); token.kind) {
                 case lex::TokenKind::KwTrue:
                 case lex::TokenKind::KwFalse:
                     next();
@@ -647,6 +722,8 @@ namespace vela::parse {
         lex::LexPos m_pos = 0;
         lex::LexPos m_prevEnd = 0;
         lex::LexPos m_nextId = 0;
+
+        std::vector<Diagnostic> m_diagnostics;
         int m_depth = 0;
     };
 

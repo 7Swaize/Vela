@@ -249,8 +249,6 @@ namespace vela::parse::ast {
     [[nodiscard]] T *dyn_cast(Node *n) {
         return is<T>(n) ? static_cast<T *>(n) : nullptr;
     }
-
-
 } // namespace vela::parse:ast
 
 #endif //VELA_AST_H
