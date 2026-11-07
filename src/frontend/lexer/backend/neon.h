@@ -9,13 +9,18 @@
 #include <arm_neon.h>
 #include <bit>
 
+#include "avx2.h"
 #include "block.h"
 #include "frontend/lexer/table_gen.h"
 #include "shared/preprocessor.h"
 
 namespace vela::lex::neon {
+    struct SimdWordAttributesPreserved {
+        uint16x8_t word;
+    };
+
     using MaskType = uint16_t;
-    using SimdWord = uint16x8_t;
+    using SimdWord = SimdWordAttributesPreserved;
 
     // clang-format off
     VELA_FORCE_INLINE uint8x16_t vpshub(const uint8x16_t table, const uint8x16_t indices) noexcept {

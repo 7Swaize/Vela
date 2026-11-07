@@ -15,8 +15,12 @@
 
 
 namespace vela::lex::avx2 {
+    struct SimdWordAttributesPreserved {
+        __m256i word;
+    };
+
     using MaskType = uint32_t;
-    using SimdWord = __m256i;
+    using SimdWord = SimdWordAttributesPreserved;
 
     // clang-format off
     VELA_FORCE_INLINE uint32_t movemask(const __m256i v) noexcept { return static_cast<uint32_t>(_mm256_movemask_epi8(v)); }
