@@ -71,10 +71,12 @@ namespace vela::parse {
 
             template <ast::HasNodeKind T, typename... Args>
             T *alloc_node(const ast::Span span, Args &&... args) {
-                return m_arena.make<T>(
-                    ast::Node{.kind = T::Kind, .id = m_nextId++, .span = span},
-                    std::forward<Args>(args)...
-                );
+                return m_arena.make<T>([this, span]<typename... Argss>(void *mem, Argss &&... argss) {
+                    return ::new (mem) T{
+                        { ast::Node{.kind = T::Kind, .id = m_nextId++, .span = span} },
+                        std::forward<Argss>(argss)...
+                    };
+                }, std::forward<Args>(args)...);
             }
 
             const lex::Token &peek(const std::size_t k = 0) const {

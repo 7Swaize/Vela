@@ -12,7 +12,7 @@
 
 namespace vela::shared {
     namespace detail {
-        template<typename T>
+        template <typename T>
         std::string stringify(T&& t) {
             using std::to_string;
             return to_string(std::forward<T>(t));
@@ -20,12 +20,12 @@ namespace vela::shared {
     } // namespace detail
 
     // clang-format off
-    template<typename T, typename Deleter, typename... Args>
+    template <typename T, typename Deleter, typename... Args>
     VELA_FORCE_INLINE std::unique_ptr<T, Deleter> make_unique_with_deleter(Args &&...args) {
         return std::unique_ptr<T, Deleter>(new T(std::forward<Args>(args)...));
     }
 
-    template<typename T, typename Deleter>
+    template <typename T, typename Deleter>
     VELA_FORCE_INLINE std::unique_ptr<T, Deleter> adopt_unique_with_deleter(
         typename std::unique_ptr<T, Deleter>::pointer ptr,
         Deleter &&deleter)
@@ -33,7 +33,7 @@ namespace vela::shared {
         return std::unique_ptr<T, Deleter>(ptr, std::forward<Deleter>(deleter));
     }
 
-    template<std::ranges::input_range T>
+    template <std::ranges::input_range T>
     std::string collection_to_string(T&& collection) {
         auto strings = std::forward<T>(collection)
             | std::ranges::views::transform([](const auto& a) {
@@ -44,23 +44,23 @@ namespace vela::shared {
         return "[ " + std::ranges::to<std::string>(strings) + " ]";
     }
 
-    template<typename... Args>
+    template <typename... Args>
     std::string runtime_format(const std::string_view dynamic_fmt, Args &&...args) {
         return std::vformat(dynamic_fmt, std::make_format_args(args...));
     }
     // clang-format on
 
-    template<typename T, std::size_t Alignment>
+    template <typename T, std::size_t Alignment>
     struct AlignedAllocator {
         using value_type = T;
 
         AlignedAllocator() noexcept = default;
 
-        template<class U>
+        template <class U>
         explicit constexpr AlignedAllocator(const AlignedAllocator<U, Alignment> &) noexcept { }
 
         // https://stackoverflow.com/questions/66891368/template-parametric-type-allocator-in-c
-        template<class U>
+        template <class U>
         struct rebind {
             using other = AlignedAllocator<U, Alignment>;
         };
@@ -102,6 +102,13 @@ namespace vela::shared {
         template <typename T, typename... Args> requires std::is_trivially_destructible_v<T>
         [[nodiscard]] T *make(Args &&...args) {
             return ::new (alloc(sizeof(T), alignof(T))) T{std::forward<Args>(args)...};
+        }
+
+        template <typename T, typename Func, typename... Args>
+            requires std::is_trivially_destructible_v<T> && std::is_invocable_r_v<T*, Func, void*, Args...>
+        [[nodiscard]] T *make(Func &&func, Args &&...args) {
+            void* memory = alloc(sizeof(T), alignof(T));
+            return std::forward<Func>(func)(memory, std::forward<Args>(args)...);
         }
 
         template <typename T > requires std::is_trivially_destructible_v<T>
