@@ -101,15 +101,28 @@ add_library(vela_lexer STATIC
     src/frontend/lexer/backend/neon.h
     src/frontend/lexer/backend/select.h
 )
-target_include_directories(vela_lexer PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
+target_include_directories(vela_lexer PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src/frontend/lexer)
 target_link_libraries(vela_lexer
     PUBLIC vela_shared
     PRIVATE vela_compile_options
 
 )
 
+add_library(vela_parser STATIC
+    src/frontend/parser/ast.h
+    src/frontend/parser/diagnostic.h
+
+    src/frontend/parser/parse.cc
+    src/frontend/parser/parse.h
+)
+target_include_directories(vela_parser PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src/frontend/parser)
+target_link_libraries(vela_parser
+    PUBLIC vela_shared
+    PRIVATE vela_compile_options
+)
+
 add_library(vela INTERFACE)
-target_link_libraries(vela INTERFACE vela_lexer)
+target_link_libraries(vela INTERFACE vela_lexer vela_parser)
 
 if (VELA_BUILD_TESTS)
     enable_testing()
