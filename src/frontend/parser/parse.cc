@@ -46,9 +46,9 @@ namespace vela::parse {
             const std::size_t n = m_scratch.size() - mark;
             const std::span<T *> out = m_arena.make_array<T *>(n);
             for (std::size_t i = 0; i < n; ++i) {
-                out[i] = static_cast<T *>(m_scratch.back());
-                m_scratch.pop_back();
+                out[i] = static_cast<T *>(m_scratch[mark + i]);
             }
+            m_scratch.resize(mark);
 
             return out;
         }
@@ -111,15 +111,19 @@ namespace vela::parse {
         // LL(2) here
         bool starts_decl() const {
             if (is_prim(kind())) {
-                return true;
+                return false;
             }
 
             if (kind() != lex::TokenKind::Identifier) {
-                return true;
+                return false;
             }
 
             return kind(1) == lex::TokenKind::Identifier
                 || (kind(1) == lex::TokenKind::LBracket && kind(2) == lex::TokenKind::RBracket);
+        }
+
+        static bool start_toplevel(const lex::TokenKind kind) {
+            return kind == lex::TokenKind::KwFn || kind == lex::TokenKind::KwClass || kind == lex::TokenKind::KwStruct;
         }
 
         void synchronize_stmt() {
@@ -256,7 +260,7 @@ namespace vela::parse {
                 } while (accept(lex::TokenKind::Comma));
             }
 
-            expect(lex::TokenKind::LParen);
+            expect(lex::TokenKind::RParen);
             const std::span<ast::Parameter *const> params = take<ast::Parameter>(mark);
             ast::Block *body = block();
 
@@ -411,7 +415,8 @@ namespace vela::parse {
             }
 
             ast::Expr *cond = nullptr;
-            if (!accept(lex::TokenKind::Semicolon)) {
+            if (kind() != lex::TokenKind::Semicolon) {
+                next();
                 cond = expression();
             }
             expect(lex::TokenKind::Semicolon);
@@ -571,15 +576,15 @@ namespace vela::parse {
                         do {
                             m_scratch.push_back(expression());
                         } while (accept(lex::TokenKind::Comma));
-                        expect(lex::TokenKind::RParen);
-                        const std::span<ast::Expr *const> args = take<ast::Expr>(mark);
-
-                        expr = alloc_node<ast::Call>(
-                            ast::Span{expr->span.start, m_prevEnd},
-                            expr,
-                            args
-                        );
                     }
+                    expect(lex::TokenKind::RParen);
+                    const std::span<ast::Expr *const> args = take<ast::Expr>(mark);
+
+                    expr = alloc_node<ast::Call>(
+                        ast::Span{expr->span.start, m_prevEnd},
+                        expr,
+                        args
+                    );
                 } else if (kind() == lex::TokenKind::Dot) {
                     next();
                     const lex::Token name = expect(lex::TokenKind::Identifier);
