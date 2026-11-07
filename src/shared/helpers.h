@@ -42,6 +42,11 @@ namespace vela::shared {
 
         return "[ " + std::ranges::to<std::string>(strings) + " ]";
     }
+
+    template<typename... Args>
+    std::string runtime_format(const std::string_view dynamic_fmt, Args &&...args) {
+        return std::vformat(dynamic_fmt, std::make_format_args(args...));
+    }
     // clang-format on
 
     template<typename T, std::size_t Alignment>

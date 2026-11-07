@@ -2,12 +2,13 @@
 #define VELA_DIAGNOSTIC_H
 
 #include <algorithm>
-#include <ranges>
 #include <vector>
 
 #include "frontend/lexer/token.h"
 
 namespace vela::parse {
+    inline constexpr int kMaxFatalErrors = 128;
+
     struct Note {
         lex::LexPos offset;
         lex::LexPos length;
@@ -53,7 +54,9 @@ namespace vela::parse {
     };
 
     inline std::string render(const Diagnostic &diagnostic, const std::string_view file) {
-
+        (void)diagnostic;
+        (void)file;
+        return {};
     }
 } // namespace vela::parse
 
