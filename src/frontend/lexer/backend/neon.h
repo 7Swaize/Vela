@@ -9,7 +9,6 @@
 #include <arm_neon.h>
 #include <bit>
 
-#include "avx2.h"
 #include "block.h"
 #include "frontend/lexer/table_gen.h"
 #include "shared/preprocessor.h"

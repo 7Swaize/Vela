@@ -103,9 +103,8 @@ add_library(vela_lexer STATIC
 )
 target_include_directories(vela_lexer PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src/frontend/lexer)
 target_link_libraries(vela_lexer
-    PUBLIC vela_shared
+    PRIVATE vela_shared
     PRIVATE vela_compile_options
-
 )
 
 add_library(vela_parser STATIC
@@ -117,7 +116,7 @@ add_library(vela_parser STATIC
 )
 target_include_directories(vela_parser PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src/frontend/parser)
 target_link_libraries(vela_parser
-    PUBLIC vela_shared
+    PRIVATE vela_shared
     PRIVATE vela_compile_options
 )
 
