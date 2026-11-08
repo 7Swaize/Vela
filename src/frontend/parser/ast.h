@@ -2,6 +2,10 @@
 #define VELA_AST_H
 
 #include <cassert>
+#include <cstdint>
+#include <span>
+#include <string_view>
+#include <concepts>
 
 #include "frontend/lexer/lex.h"
 
@@ -90,7 +94,7 @@ namespace vela::parse::ast {
         std::span<Decl *const> members;
     };
 
-    struct FieldDecl : Decl {
+    struct FieldDeclaration : Decl {
         static constexpr NodeKind Kind = NodeKind::FieldDeclaration;
         TypeRef *type;
         Span name;
@@ -103,7 +107,7 @@ namespace vela::parse::ast {
     };
 
     struct Block;
-    struct FunctionDecl : Decl {
+    struct FunctionDeclaration : Decl {
         static constexpr NodeKind Kind = NodeKind::FunctionDeclaration;
         TypeRef *ret;
         Span name;
@@ -111,7 +115,7 @@ namespace vela::parse::ast {
         Block *body;
     };
 
-    struct VariableDecl : Decl {
+    struct VariableDeclaration : Decl {
         static constexpr NodeKind Kind = NodeKind::VariableDeclaration;
         TypeRef *type;
         Span name;
@@ -123,7 +127,7 @@ namespace vela::parse::ast {
         std::span<Node *const> items;
     };
 
-    struct ExprStmt : Stmt {
+    struct ExpressionStatement : Stmt {
         static constexpr NodeKind Kind = NodeKind::ExpressionStatement;
         Expr *expr;
     };
@@ -154,14 +158,14 @@ namespace vela::parse::ast {
         Expr *value;
     };
 
-    struct IntLit : Expr { static constexpr NodeKind Kind = NodeKind::IntLiteral; };
-    struct FloatLit : Expr { static constexpr NodeKind Kind = NodeKind::FloatLiteral; };
-    struct StringLit : Expr { static constexpr NodeKind Kind = NodeKind::StringLiteral; };
-    struct NullLit : Expr { static constexpr NodeKind Kind = NodeKind::NullLiteral; };
+    struct IntLiteral : Expr { static constexpr NodeKind Kind = NodeKind::IntLiteral; };
+    struct FloatLiteral : Expr { static constexpr NodeKind Kind = NodeKind::FloatLiteral; };
+    struct StringLiteral : Expr { static constexpr NodeKind Kind = NodeKind::StringLiteral; };
+    struct NullLiteral : Expr { static constexpr NodeKind Kind = NodeKind::NullLiteral; };
     struct This : Expr { static constexpr NodeKind Kind = NodeKind::This; };
-    struct Ident : Expr { static constexpr NodeKind Kind = NodeKind::Identifier; };
+    struct Identifier : Expr { static constexpr NodeKind Kind = NodeKind::Identifier; };
 
-    struct BoolLit : Expr {
+    struct BoolLiteral : Expr {
         static constexpr NodeKind Kind = NodeKind::BoolLiteral;
         bool value;
     };
@@ -209,7 +213,7 @@ namespace vela::parse::ast {
     };
 
     // Point { x = 1, y = 2 }
-    struct StructLit : Expr {
+    struct StructLiteral : Expr {
         static constexpr NodeKind Kind = NodeKind::StructLiteral;
         Span typeName;
         std::span<FieldInit *const> inits;
@@ -230,8 +234,7 @@ namespace vela::parse::ast {
 
     template <typename T>
     concept HasNodeKind = requires {
-        { T::Kind } -> std::convertible_to<NodeKind>;
-        requires T::Kind == T::Kind;
+        requires std::same_as<std::remove_cvref_t<decltype(T::Kind)>, NodeKind>;
     };
 
     template <HasNodeKind T>

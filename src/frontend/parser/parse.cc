@@ -361,20 +361,20 @@ namespace vela::parse {
                 );
             }
 
-            ast::FieldDecl *field() {
+            ast::FieldDeclaration *field() {
                 const lex::LexPos start = peek().start;
                 ast::TypeRef *t = type();
                 const lex::Token name = expect(lex::TokenKind::Identifier);
                 expect_semi("field declaration");
 
-                return alloc_node<ast::FieldDecl>(
+                return alloc_node<ast::FieldDeclaration>(
                     ast::Span{start, m_prevEnd},
                     t,
                     ast::Span{name.start, name.end}
                 );
             }
 
-            ast::FunctionDecl *func() {
+            ast::FunctionDeclaration *func() {
                 const lex::Token kw = expect(lex::TokenKind::KwFn);
                 ast::TypeRef *retType = return_type();
                 const lex::Token name = expect(lex::TokenKind::Identifier);
@@ -391,7 +391,7 @@ namespace vela::parse {
                 const std::span<ast::Parameter *const> params = take<ast::Parameter>(mark);
                 ast::Block *body = block();
 
-                return alloc_node<ast::FunctionDecl>(
+                return alloc_node<ast::FunctionDeclaration>(
                     ast::Span{kw.start, m_prevEnd},
                     retType,
                     ast::Span{name.start, name.end},
@@ -478,7 +478,7 @@ namespace vela::parse {
                 );
             }
 
-            ast::VariableDecl *var_decl() {
+            ast::VariableDeclaration *var_decl() {
                 const lex::LexPos start = peek().start;
                 ast::TypeRef *typeRef = type();
                 const lex::Token name = expect(lex::TokenKind::Identifier);
@@ -489,7 +489,7 @@ namespace vela::parse {
                 }
                 expect_semi("variable declaration");
 
-                return alloc_node<ast::VariableDecl>(
+                return alloc_node<ast::VariableDeclaration>(
                     ast::Span{start, m_prevEnd},
                     typeRef,
                     ast::Span{name.start, name.end},
@@ -601,12 +601,12 @@ namespace vela::parse {
                 );
             }
 
-            ast::ExprStmt *expr_stmt() {
+            ast::ExpressionStatement *expr_stmt() {
                 const lex::LexPos start = peek().start;
                 ast::Expr *expr = expression();
                 expect_semi("expression");
 
-                return alloc_node<ast::ExprStmt>(
+                return alloc_node<ast::ExpressionStatement>(
                     ast::Span{start, m_prevEnd},
                     expr
                 );
@@ -748,37 +748,37 @@ namespace vela::parse {
                     case lex::TokenKind::KwTrue:
                     case lex::TokenKind::KwFalse:
                         next();
-                        return alloc_node<ast::BoolLit>(
+                        return alloc_node<ast::BoolLiteral>(
                             ast::Span{token.start, token.end},
                             token.kind == lex::TokenKind::KwTrue
                         );
                     case lex::TokenKind::KwNull:
                         next();
-                        return alloc_node<ast::NullLit>(ast::Span{token.start, token.end});
+                        return alloc_node<ast::NullLiteral>(ast::Span{token.start, token.end});
                     case lex::TokenKind::KwThis:
                         next();
                         return alloc_node<ast::This>(ast::Span{token.start, token.end});
                     case lex::TokenKind::IntLiteral:
                         next();
-                        return alloc_node<ast::IntLit>(ast::Span{token.start, token.end});
+                        return alloc_node<ast::IntLiteral>(ast::Span{token.start, token.end});
                     case lex::TokenKind::FloatLiteral:
                         next();
-                        return alloc_node<ast::FloatLit>(ast::Span{token.start, token.end});
+                        return alloc_node<ast::FloatLiteral>(ast::Span{token.start, token.end});
                     case lex::TokenKind::StringLiteral:
                         next();
-                        return alloc_node<ast::StringLit>(ast::Span{token.start, token.end});
+                        return alloc_node<ast::StringLiteral>(ast::Span{token.start, token.end});
                     case lex::TokenKind::Identifier: {
                         if (kind(1) == lex::TokenKind::LBrace) {
                             next();
                             const std::span<ast::FieldInit *const> inits = field_inits();
-                            return alloc_node<ast::StructLit>(
+                            return alloc_node<ast::StructLiteral>(
                                 ast::Span{token.start, m_prevEnd},
                                 ast::Span{token.start, token.end},
                                 inits
                             );
                         }
                         next();
-                        return alloc_node<ast::Ident>(ast::Span{token.start, token.end});
+                        return alloc_node<ast::Identifier>(ast::Span{token.start, token.end});
                     }
                     case lex::TokenKind::LParen: {
                         next();
