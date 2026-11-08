@@ -363,7 +363,7 @@ namespace vela::parse {
 
             ast::FieldDeclaration *field() {
                 const lex::LexPos start = peek().start;
-                ast::TypeRef *t = type();
+                ast::TypeReference *t = type();
                 const lex::Token name = expect(lex::TokenKind::Identifier);
                 expect_semi("field declaration");
 
@@ -376,7 +376,7 @@ namespace vela::parse {
 
             ast::FunctionDeclaration *func() {
                 const lex::Token kw = expect(lex::TokenKind::KwFn);
-                ast::TypeRef *retType = return_type();
+                ast::TypeReference *retType = return_type();
                 const lex::Token name = expect(lex::TokenKind::Identifier);
                 expect(lex::TokenKind::LParen);
                 const std::size_t mark = m_scratch.size();
@@ -400,7 +400,7 @@ namespace vela::parse {
                 );
             }
 
-            ast::TypeRef *type() {
+            ast::TypeReference *type() {
                 const lex::Token token = peek();
                 if (!is_prim(token.kind) && token.kind != lex::TokenKind::Identifier) {
                     fail(token, shared::runtime_format("expected a type, found '{}'", lex::to_string(token.kind)));
@@ -414,7 +414,7 @@ namespace vela::parse {
                     isArray = true;
                 }
 
-                return alloc_node<ast::TypeRef>(
+                return alloc_node<ast::TypeReference>(
                     ast::Span{token.start, m_prevEnd},
                     token.kind,
                     isArray,
@@ -422,10 +422,10 @@ namespace vela::parse {
                 );
             }
 
-            ast::TypeRef *return_type() {
+            ast::TypeReference *return_type() {
                 if (kind() == lex::TokenKind::KwVoid) {
                     const lex::Token token = next();
-                    return alloc_node<ast::TypeRef>(
+                    return alloc_node<ast::TypeReference>(
                         ast::Span{token.start, m_prevEnd},
                         token.kind,
                         false,
@@ -438,7 +438,7 @@ namespace vela::parse {
 
             ast::Parameter *param() {
                 const lex::LexPos start = peek().start;
-                ast::TypeRef *typeRef = type();
+                ast::TypeReference *typeRef = type();
                 const lex::Token name = expect(lex::TokenKind::Identifier);
 
                 return alloc_node<ast::Parameter>(
@@ -480,7 +480,7 @@ namespace vela::parse {
 
             ast::VariableDeclaration *var_decl() {
                 const lex::LexPos start = peek().start;
-                ast::TypeRef *typeRef = type();
+                ast::TypeReference *typeRef = type();
                 const lex::Token name = expect(lex::TokenKind::Identifier);
                 ast::Expr *init = nullptr;
 
@@ -803,7 +803,7 @@ namespace vela::parse {
 
                 next();
                 if (kind() == lex::TokenKind::LBracket) {
-                    ast::TypeRef *elem = alloc_node<ast::TypeRef>(
+                    ast::TypeReference *elem = alloc_node<ast::TypeReference>(
                         ast::Span{ty.start, ty.end},
                         ty.kind,
                         false,
