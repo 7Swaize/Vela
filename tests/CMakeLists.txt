@@ -15,5 +15,12 @@ add_executable(vela_lexer_tests
 target_include_directories(vela_lexer_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(vela_lexer_tests PRIVATE vela_lexer vela_shared vela_compile_options GTest::gtest_main)
 
+add_executable(vela_parser_tests
+    unit/parser/parser_tests.cc
+)
+target_include_directories(vela_parser_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(vela_parser_tests PRIVATE vela_shared vela_compile_options GTest::gtest_main)
+
 include(GoogleTest)
 gtest_discover_tests(vela_lexer_tests)
+gtest_discover_tests(vela_parser_tests)

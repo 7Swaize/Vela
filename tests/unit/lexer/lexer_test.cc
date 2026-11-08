@@ -1,4 +1,3 @@
-// ReSharper disable CppUseDesignatedInitializers
 #include <gtest/gtest.h>
 
 #include <cstddef>
