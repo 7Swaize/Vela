@@ -107,7 +107,7 @@ namespace vela::parse {
                 return next();
             }
 
-            void expect_semi(const std::string &expectedAfter) {
+            void expect_semi(std::string &&expectedAfter) {
                 if (accept(lex::TokenKind::Semicolon)) {
                     return;
                 }
