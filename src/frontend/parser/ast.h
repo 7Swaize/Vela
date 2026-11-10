@@ -67,9 +67,11 @@ namespace vela::parse::ast {
         return "?";
     }
 
+    using NodeId = lex::LexPos;
+
     struct Node {
         NodeKind kind;
-        uint32_t id;
+        NodeId id;
         Span span;
     };
 
@@ -81,7 +83,7 @@ namespace vela::parse::ast {
         static constexpr NodeKind Kind = NodeKind::TypeReference;
         lex::TokenKind base;
         bool isArray;
-        Span name;  // including trailing '[]'
+        Span name;  // excluding trailing '[]'
     };
 
     struct Program : Node {

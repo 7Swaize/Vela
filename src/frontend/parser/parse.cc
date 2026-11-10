@@ -864,7 +864,7 @@ namespace vela::parse {
             std::vector<ast::Node *> m_scratch;
             lex::LexPos m_pos = 0;
             lex::LexPos m_prevEnd = 0;
-            lex::LexPos m_nextId = 0;
+            ast::NodeId m_nextId = 0;
 
             std::vector<Diagnostic> m_diagnostics;
             int m_depth = 0;
