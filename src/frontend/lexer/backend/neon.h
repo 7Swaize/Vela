@@ -108,13 +108,12 @@ namespace vela::lex::neon {
         // Strings
         uint16_t escaped = find_escaped(bs, state.escape_carry);
         uint16_t real_quotes = quote & ~escaped;
-        uint16_t comment = 0, real_cstarts = 0;
-        uint16_t in_str;
+        uint16_t in_str = 0, comment = 0, real_cstarts = 0;
 
         if (VELA_LIKELY(!cstarts && state.context <= ExecutionContext::String)) {
             // 1 from opening quote up to (not including) closing quote
             in_str = prefix_xor_hw(real_quotes) ^ (state.context == ExecutionContext::String ? 0xFFFF : 0);
-            state.context = static_cast<int16_t>(in_str) >> 15 > 0 ? ExecutionContext::String : ExecutionContext::Code;
+            state.context = static_cast<int16_t>(in_str) >> 15 < 0 ? ExecutionContext::String : ExecutionContext::Code;
         } else {
             resolve_comment_string_mask_scalar(p, real_quotes, state, in_str, comment, real_cstarts);
         }
@@ -139,7 +138,7 @@ namespace vela::lex::neon {
         // Token starts
         uint16_t prev_ident = (ident << 1) | state.ident_carry;
         state.ident_carry = ident >> 15;
-        LexPos starts = (ident & ~prev_ident) | (punct & ~second) | str_start | real_cstarts | bad;
+        LexPos starts = (ident & ~prev_ident) | (punct & ~second) | str_start | ws | real_cstarts | bad;
 
         masks = {
             .ident = ident,

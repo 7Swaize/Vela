@@ -46,11 +46,11 @@ namespace vela::lex {
             const uint8_t curr = p[i];
             const uint8_t next = p[i + 1]; // we are guaranteed this is valid
 
-            switch (state.pair_carry) {
+            switch (state.context) {
                 case Code:
                     if (quotes & bit(i)) {
                         in_str |= bit(i);
-                        state = ExecutionContext::String;
+                        state.context = ExecutionContext::String;
                     } else if (curr == '/' && (next == '/' || next == '*')) {
                         cstarts |= bit(i);
                         comment |= bit(i) | bit(i + 1);
@@ -60,14 +60,14 @@ namespace vela::lex {
                     break;
                 case String:
                     if (quotes & bit(i)) {
-                        state = ExecutionContext::Code;
+                        state.context = ExecutionContext::Code;
                     } else {
                         in_str |= bit(i);
                     }
                     break;
                 case SingleLineComment:
                     if (curr == '\n') {
-                        state = ExecutionContext::Code;
+                        state.context = ExecutionContext::Code;
                     } else {
                         comment |= bit(i);
                     }
@@ -75,9 +75,9 @@ namespace vela::lex {
                 case MultiLineComment:
                     comment |= bit(i);
                     if (curr == '*' && next == '/') {
-                        state = ExecutionContext::Code;
+                        state.context = ExecutionContext::Code;
                         ++i;
-                        comment |= bit(i + 1);
+                        comment |= bit(i);
                     }
                     break;
                 default:

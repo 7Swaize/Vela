@@ -1,6 +1,7 @@
 #ifndef VELA_TOKEN_H
 #define VELA_TOKEN_H
 
+#include <climits>
 #include <cstdint>
 #include <format>
 #include <string_view>
