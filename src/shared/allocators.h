@@ -69,7 +69,7 @@
             return std::forward<Func>(func)(memory, std::forward<Args>(args)...);
         }
 
-        template <typename T > requires std::is_trivially_destructible_v<T>
+        template <typename T> requires std::is_trivially_destructible_v<T>
         [[nodiscard]] std::span<T> make_array(const std::size_t n) {
             if (n == 0) {
                 return {};

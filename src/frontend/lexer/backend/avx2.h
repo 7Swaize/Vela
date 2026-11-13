@@ -13,7 +13,6 @@
 #include "frontend/lexer/table_gen.h"
 #include "shared/preprocessor.h"
 
-
 namespace vela::lex::avx2 {
     struct SimdWordAttributesPreserved {
         __m256i word;
@@ -79,11 +78,28 @@ namespace vela::lex::avx2 {
         uint32_t quote = eq(in, '"');
         uint32_t bs = eq(in, '\\');
 
+        // Comments
+        uint32_t cstarts = movemask(_mm256_and_si256(
+            _mm256_cmpeq_epi8(in, _mm256_set1_epi8('/')),
+            _mm256_or_si256(_mm256_cmpeq_epi8(next, _mm256_set1_epi8('/')), _mm256_cmpeq_epi8(next, _mm256_set1_epi8('*')))
+        ));
+
         // Strings
         uint32_t escaped = find_escaped(bs, state.escape_carry);
         uint32_t real_quotes = quote & ~escaped;
-        uint32_t in_str = prefix_xor_dw(real_quotes) ^ state.in_string; // 1 from opening quote up to (not including) closing quote
-        uint32_t outside = ~in_str;
+        uint32_t comment = 0, real_cstarts = 0;
+        uint32_t in_str;
+
+        if (VELA_LIKELY(!cstarts && state.context <= ExecutionContext::String)) {
+            // 1 from opening quote up to (not including) closing quote
+            in_str = prefix_xor_dw(real_quotes) ^ (state.context == ExecutionContext::String ? 0xFFFFFFFF : 0);
+            state.context = static_cast<int32_t>(in_str) >> 31 > 0 ? ExecutionContext::String : ExecutionContext::Code;
+        } else {
+            resolve_comment_string_mask_scalar(p, real_quotes, state, in_str, comment, real_cstarts);
+        }
+
+        uint32_t outside = ~in_str & ~comment;
+        real_quotes &= ~comment;
         ident &= outside;
         punct &= outside;
         uint32_t str_start = real_quotes & in_str;
@@ -98,12 +114,11 @@ namespace vela::lex::avx2 {
 
         uint32_t second = (pair << 1) | state.pair_carry;
         state.pair_carry = pair >> 31;
-        state.in_string = static_cast<uint32_t>(static_cast<int32_t>(in_str) >> 31);
 
         // Token starts
         uint32_t prev_ident = (ident << 1) | state.ident_carry;
         state.ident_carry = ident >> 31;
-        LexPos starts = (ident & ~prev_ident) | (punct & ~second) | str_start | bad;
+        LexPos starts = (ident & ~prev_ident) | (punct & ~second) | str_start | real_cstarts | bad;
 
         masks = {
             .ident = ident,
@@ -118,6 +133,8 @@ namespace vela::lex::avx2 {
             .pair = pair,
             .second = second,
             .str_start = str_start,
+            .real_comment = comment,
+            .cstarts = real_cstarts,
             .bad = bad,
             .starts = starts
         };

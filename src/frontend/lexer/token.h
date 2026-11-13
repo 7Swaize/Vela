@@ -6,7 +6,15 @@
 #include <string_view>
 
 namespace vela::lex {
-#define VELA_TOKEN_KINDS(X)       \
+#define VELA_TRIVIA_TOKEN_KINDS(X)              \
+    X(NewlineTrivia, "<newline>")               \
+    X(SpaceTrivia, "<space>")                   \
+    X(TabTrivia, "<tab>")                       \
+    X(CarriageReturnTrivia, "<carriage>")       \
+    X(CommentTrivia, "<comment>")               \
+    X(MultilineCommentTrivia, "<multiline>")
+
+#define VELA_CORE_TOKEN_KINDS(X)  \
     X(Eof, "<eof>")               \
     X(Error, "<error>")           \
     X(Identifier, "<identifier>") \
@@ -86,6 +94,10 @@ namespace vela::lex {
     X('>', Gt)                     \
     X('=', Assign)
 
+#define VELA_TOKEN_KINDS(X)     \
+    VELA_TRIVIA_TOKEN_KINDS(X)  \
+    VELA_CORE_TOKEN_KINDS(X)    \
+
 #define VELA_LEX_ERROR_KINDS(X)                  \
     X(InvalidCharacter, "invalid character")     \
     X(MalformedNumber, "malformed number")       \
@@ -115,14 +127,14 @@ namespace vela::lex {
     // Currently we track absolute positions because its easier (and faster in the single compilation sense).
     // If this were to get transfered to an IDE, we should track offsets to invalidation of every token on edit.
     struct Token {
-        LexPos start, end;
+        LexPos width;
         TokenKind kind;
 
         constexpr bool operator==(const Token &) const = default;
     };
 
     inline std::string to_string(const Token &tok) {
-        return std::format( "{{start: {}, end: {}, kind: {}}}", tok.start, tok.end, to_string(tok.kind));
+        return std::format( "{{width: {}, kind: {}}}", tok.width, to_string(tok.kind));
     }
 
     enum class LexErrorKind : uint8_t {
@@ -162,7 +174,7 @@ namespace vela::lex {
             max_len = len;                                              \
         }                                                               \
     }
-        VELA_TOKEN_KINDS(X)
+        VELA_CORE_TOKEN_KINDS(X)
 #undef X
 
         return max_len;
@@ -178,12 +190,11 @@ namespace vela::lex {
             min_len = len;                                              \
         }                                                               \
     }
-        VELA_TOKEN_KINDS(X)
+        VELA_CORE_TOKEN_KINDS(X)
 #undef X
 
         return min_len;
     }();
-
 } // namespace vela::lex
 
 #endif // VELA_TOKEN_H

@@ -15,7 +15,7 @@ namespace vela::parse {
     X(SpacesTrivia)                            \
     X(TabsTrivia)                              \
     X(CommentTrivia)                           \
-    X(MultipleTrivia)                          \
+    X(MultilineCommentTrivia)                  \
     X(UnexpectedToken)
 
 #define VELA_TERMINAL_SYNTAX_NODE_KINDS(X)     \

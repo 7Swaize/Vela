@@ -54,7 +54,7 @@ namespace vela::unittests::lex {
     if (std::string_view(#name).starts_with("Kw")) {         \
         m.emplace(std::string_view(str), TokenKind::name);   \
     }
-            VELA_TOKEN_KINDS(X)
+            VELA_CORE_TOKEN_KINDS(X)
 #undef X
             return m;
         }();

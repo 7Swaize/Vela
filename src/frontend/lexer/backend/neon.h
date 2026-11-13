@@ -13,6 +13,9 @@
 #include "frontend/lexer/table_gen.h"
 #include "shared/preprocessor.h"
 
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wimplicit-int-conversion"
+
 namespace vela::lex::neon {
     struct SimdWordAttributesPreserved {
         uint16x8_t word;
@@ -96,11 +99,28 @@ namespace vela::lex::neon {
         uint16_t quote = eq(in, '"');
         uint16_t bs = eq(in, '\\');
 
+        // Comments
+        uint16_t cstarts = movemask(vandq_u8(
+            vceqq_u8(in, vdupq_n_u8('/')),
+            vorrq_u8(vceqq_u8(in, vdupq_n_u8('/')), vceqq_u8(in, vdupq_n_u8('*')))
+        ));
+
         // Strings
         uint16_t escaped = find_escaped(bs, state.escape_carry);
         uint16_t real_quotes = quote & ~escaped;
-        uint16_t in_str = prefix_xor_hw(real_quotes) ^ state.in_string; // 1 from opening quote up to (not including) closing quote
-        uint16_t outside = ~in_str;
+        uint16_t comment = 0, real_cstarts = 0;
+        uint16_t in_str;
+
+        if (VELA_LIKELY(!cstarts && state.context <= ExecutionContext::String)) {
+            // 1 from opening quote up to (not including) closing quote
+            in_str = prefix_xor_hw(real_quotes) ^ (state.context == ExecutionContext::String ? 0xFFFF : 0);
+            state.context = static_cast<int16_t>(in_str) >> 15 > 0 ? ExecutionContext::String : ExecutionContext::Code;
+        } else {
+            resolve_comment_string_mask_scalar(p, real_quotes, state, in_str, comment, real_cstarts);
+        }
+
+        uint16_t outside = ~in_str & ~comment;
+        real_quotes &= ~comment;
         ident &= outside;
         punct &= outside;
         uint16_t str_start = real_quotes & in_str;
@@ -115,12 +135,11 @@ namespace vela::lex::neon {
 
         uint16_t second = (pair << 1) | state.pair_carry;
         state.pair_carry = pair >> 15;
-        state.in_string = static_cast<uint16_t>(static_cast<int16_t>(in_str) >> 15);
 
         // Token starts
         uint16_t prev_ident = (ident << 1) | state.ident_carry;
         state.ident_carry = ident >> 15;
-        LexPos starts = (ident & ~prev_ident) | (punct & ~second) | str_start | bad;
+        LexPos starts = (ident & ~prev_ident) | (punct & ~second) | str_start | real_cstarts | bad;
 
         masks = {
             .ident = ident,
@@ -135,10 +154,14 @@ namespace vela::lex::neon {
             .pair = pair,
             .second = second,
             .str_start = str_start,
+            .real_comment = comment,
+            .cstarts = real_cstarts,
             .bad = bad,
             .starts = starts
         };
     }
 } // namespace vela::lex:neon
+
+#pragma clang diagnostic pop
 
 #endif // VELA_NEON_H

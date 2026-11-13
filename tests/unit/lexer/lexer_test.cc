@@ -146,7 +146,7 @@ TEST(ReferenceLexer, KeywordsAndIdentifiers) {
         EXPECT_EQ(kinds(std::string(str) + "x"), (KindsVec{K::Identifier, K::Eof}));\
         EXPECT_EQ(kinds("_" str), (KindsVec{K::Identifier, K::Eof}));               \
     }
-    VELA_TOKEN_KINDS(X)
+    VELA_CORE_TOKEN_KINDS(X)
 #undef X
     EXPECT_EQ(kinds("Fn If"), (KindsVec{K::Identifier, K::Identifier, K::Eof}));
     EXPECT_EQ(kinds("if1 _ __x a_b9"), (KindsVec{K::Identifier, K::Identifier, K::Identifier, K::Identifier, K::Eof}));
