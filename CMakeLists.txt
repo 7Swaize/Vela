@@ -109,7 +109,7 @@ target_link_libraries(vela_lexer
 
 add_library(vela_parser STATIC
     src/frontend/parser/ast.h
-    src/frontend/parser/diagnostic.h
+    src/frontend/parser/_olddiagnostic.h
 
     src/frontend/parser/parse.cc
     src/frontend/parser/parse.h
