@@ -81,6 +81,7 @@ target_sources(vela_shared INTERFACE
     FILE_SET HEADERS
     BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/src
     FILES
+        src/shared/allocators.h
         src/shared/helpers.h
         src/shared/preprocessor.h
         src/shared/typing.h
@@ -108,13 +109,15 @@ target_link_libraries(vela_lexer
 )
 
 add_library(vela_parser STATIC
-    src/frontend/parser/ast.h
-    src/frontend/parser/_olddiagnostic.h
+    src/frontend/diagnostic.h
 
     src/frontend/parser/parse.cc
     src/frontend/parser/parse.h
+
+    src/frontend/syntax/green/node.h
+    src/frontend/syntax/green/nonterminals.h
 )
-target_include_directories(vela_parser PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src/frontend/parser)
+target_include_directories(vela_parser PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src/frontend)
 target_link_libraries(vela_parser
     PRIVATE vela_shared
     PRIVATE vela_compile_options
