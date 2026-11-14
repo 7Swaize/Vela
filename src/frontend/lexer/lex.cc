@@ -20,7 +20,16 @@ namespace vela::lex {
         struct Stage1 {
             std::vector<LexPos> starts; // byte offsets of token starts
             std::vector<backend::MaskType> ident, digits,
-                    real_quotes_mask, pair, ws, real_comment; // per-block masks kept for stage 2
+                    real_quotes, pair, ws, real_comment; // per-block masks kept for stage 2
+
+            explicit Stage1(const lex::LexPos nBlocks) {
+                ident.reserve(nBlocks);
+                digits.reserve(nBlocks);
+                real_quotes.reserve(nBlocks);
+                pair.reserve(nBlocks);
+                ws.reserve(nBlocks);
+                real_comment.reserve(nBlocks);
+            }
         };
 
         // Just wraps a normal Token and adds 'end' property for propagation
@@ -40,7 +49,7 @@ namespace vela::lex {
 
             stage.ident.push_back(masks.ident);
             stage.digits.push_back(masks.digits);
-            stage.real_quotes_mask.push_back(masks.real_quotes);
+            stage.real_quotes.push_back(masks.real_quotes);
             stage.pair.push_back(masks.pair);
             stage.ws.push_back(masks.ws);
             stage.real_comment.push_back(masks.real_comment);
@@ -182,7 +191,7 @@ namespace vela::lex {
     }
 
     static WrappedToken lex_string(const Stage1 &stage, const LexPos pos, const LexPos n) {
-        LexPos close = next_set(stage.real_quotes_mask, pos + 1, n);
+        LexPos close = next_set(stage.real_quotes, pos + 1, n);
 
         // Unclosed strings cause lexing to bail
         if (close == NPOS || close >= n) {
@@ -257,7 +266,7 @@ namespace vela::lex {
 
     static WrappedToken lex_token(const uint8_t *source, const LexPos n, const Stage1 &stage, const LexPos pos) {
         if (bit_set(stage.ws, pos)) return lex_ws(source, pos, n);
-        if (bit_set(stage.real_quotes_mask, pos)) return lex_string(stage, pos, n);
+        if (bit_set(stage.real_quotes, pos)) return lex_string(stage, pos, n);
         if (bit_set(stage.ident, pos)) return lex_word(source, stage, pos);
         if (bit_set(stage.pair, pos)) return lex_pair(source, stage, pos);
         if (bit_set(stage.real_comment, pos)) return lex_comment(source, stage, pos, n);
@@ -295,7 +304,7 @@ namespace vela::lex {
     std::vector<Token> lex(const shared::FileSourceBuffer<backend::SimdWord>& src) {
         const auto nBlocks = static_cast<LexPos>(src.alignedSize() / sizeof(backend::SimdWord));
 
-        Stage1 stage{};
+        Stage1 stage{nBlocks};
         stage1(src.data(), nBlocks, stage);
         return stage2(src.data(), static_cast<LexPos>(src.rawSize()), stage);
     }
