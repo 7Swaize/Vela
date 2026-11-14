@@ -114,8 +114,12 @@ add_library(vela_parser STATIC
     src/frontend/parser/parse.cc
     src/frontend/parser/parse.h
 
-    src/frontend/syntax/green/node.h
-    src/frontend/syntax/green/nonterminals.h
+    src/frontend/syntax/syntax_node.h
+    src/frontend/syntax/syntax_node_factory.h
+    src/frontend/syntax/syntax_tree.h
+
+    src/frontend/syntax/green/green_node.h
+    src/frontend/syntax/green/green_nonterminals.h
 )
 target_include_directories(vela_parser PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src/frontend)
 target_link_libraries(vela_parser

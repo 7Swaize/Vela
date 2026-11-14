@@ -1,5 +1,5 @@
-#ifndef VELA_CONSTRUCTS_H
-#define VELA_CONSTRUCTS_H
+#ifndef VELA_GREEN_NODE_H
+#define VELA_GREEN_NODE_H
 
 #include <optional>
 #include <string_view>
@@ -403,4 +403,4 @@ namespace vela::parse {
     };
 }
 
-#endif //VELA_CONSTRUCTS_H
+#endif //VELA_GREEN_NODE_H
