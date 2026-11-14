@@ -23,6 +23,7 @@ namespace vela::lex {
         T escape_carry = 0;
         T pair_carry = 0;
         T ident_carry = 0;
+        T comment_carry = 0; // To prevent a lookahead of `comment |= bit(16)' (which evaluates to 'comment |= 0') from being swallowed,
         ExecutionContext context = ExecutionContext::Code;
     };
 
@@ -33,7 +34,7 @@ namespace vela::lex {
         LexPos starts;
     };
 
-    // I don't want to go through the work a vectorized mask creation process right now.
+    // I don't want to go through the work of a vectorized mask creation process right now.
     // Therefore, I have this scalar version currently.
     template <typename T>
     void resolve_comment_string_mask_scalar(const uint8_t *p, T quotes, BlockState<T> &state, T &in_str, T &comment, T &cstarts) {
@@ -42,7 +43,14 @@ namespace vela::lex {
             return static_cast<T>(T{1} << i);
         };
 
-        for (int i = 0; i < Width; i++) {
+        unsigned int start = 0;
+        if (state.comment_carry) {
+            comment |= bit(0);
+            state.comment_carry = 0;
+            start = 1;
+        }
+
+        for (unsigned int i = start; i < Width; i++) {
             const uint8_t curr = p[i];
             const uint8_t next = p[i + 1]; // we are guaranteed this is valid
 
@@ -53,8 +61,14 @@ namespace vela::lex {
                         state.context = ExecutionContext::String;
                     } else if (curr == '/' && (next == '/' || next == '*')) {
                         cstarts |= bit(i);
-                        comment |= bit(i) | bit(i + 1);
-                        state = next == '/' ? ExecutionContext::SingleLineComment : ExecutionContext::MultiLineComment;
+                        comment |= bit(i);
+                        if (i + 1 == Width) {
+                            state.comment_carry = 1;
+                        } else {
+                            comment |= bit(i + 1);
+                        }
+
+                        state.context = next == '/' ? ExecutionContext::SingleLineComment : ExecutionContext::MultiLineComment;
                         ++i;
                     }
                     break;
@@ -76,8 +90,12 @@ namespace vela::lex {
                     comment |= bit(i);
                     if (curr == '*' && next == '/') {
                         state.context = ExecutionContext::Code;
+                        if (i + 1 == Width) {
+                            state.comment_carry = 1;
+                        } else {
+                            comment |= bit(i + 1);
+                        }
                         ++i;
-                        comment |= bit(i);
                     }
                     break;
                 default:

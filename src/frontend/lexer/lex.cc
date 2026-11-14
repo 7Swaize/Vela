@@ -73,17 +73,17 @@ namespace vela::lex {
     }
 
     // First 1 bit at or after 'pos'
-    static LexPos next_set(const std::vector<backend::MaskType> &masks, const LexPos pos) {
+    static LexPos next_set(const std::vector<backend::MaskType> &masks, const LexPos pos, const LexPos n) {
         LexPos word = pos >> kMaskWidthShift;
 
         if (word >= masks.size()) {
-            return NPOS;
+            return n;
         }
 
         backend::MaskType x = masks[word] & (std::numeric_limits<backend::MaskType>::max() << (pos & (kMaskWidth - 1))); // clears bits below pos
         while (!x) {
             if (++word >= masks.size()) {
-                return NPOS;
+                return n;
             }
 
             x = masks[word];
@@ -164,7 +164,7 @@ namespace vela::lex {
     static WrappedToken lex_ws(const uint8_t *source, const LexPos pos, const LexPos n) {
         TokenKind kind = classify_ws_kind(source[pos]);
 
-        for (LexPos i = 1; i < n; ++i) {
+        for (LexPos i = 1; pos + i < n; ++i) {
             if (classify_ws_kind(source[pos + i]) != kind) {
                 return {
                     .width = i,
@@ -182,12 +182,12 @@ namespace vela::lex {
     }
 
     static WrappedToken lex_string(const Stage1 &stage, const LexPos pos, const LexPos n) {
-        LexPos close = next_set(stage.real_quotes_mask, pos + 1);
+        LexPos close = next_set(stage.real_quotes_mask, pos + 1, n);
 
         // Unclosed strings cause lexing to bail
         if (close == NPOS || close >= n) {
             return {
-                .width = pos - n,
+                .width = n - pos,
                 .end = n,
                 .kind = TokenKind::Error
             };
@@ -235,7 +235,7 @@ namespace vela::lex {
         // A pair directly followed by another pair (e.g. "===") is malformed.
         if (bit_set(stage.pair, pos + 1)) {
             LexPos end = pos + run_len(stage.pair, pos) + 1;
-            return {.width = pos - end, .end = end, .kind = TokenKind::Error};
+            return {.width = end - pos, .end = end, .kind = TokenKind::Error};
         }
 
         return {
@@ -245,8 +245,8 @@ namespace vela::lex {
         };
     }
 
-    static WrappedToken lex_comment(const uint8_t *source, const Stage1 &stage, const LexPos pos) {
-        LexPos end = pos + run_len(stage.real_comment, pos);
+    static WrappedToken lex_comment(const uint8_t *source, const Stage1 &stage, const LexPos pos, const LexPos n) {
+        LexPos end = std::min(pos + run_len(stage.real_comment, pos), n);
 
         return {
             .width = end - pos,
@@ -260,7 +260,7 @@ namespace vela::lex {
         if (bit_set(stage.real_quotes_mask, pos)) return lex_string(stage, pos, n);
         if (bit_set(stage.ident, pos)) return lex_word(source, stage, pos);
         if (bit_set(stage.pair, pos)) return lex_pair(source, stage, pos);
-        if (bit_set(stage.real_comment, pos)) return lex_comment(source, stage, pos);
+        if (bit_set(stage.real_comment, pos)) return lex_comment(source, stage, pos, n);
 
         return {
             .width = 1,

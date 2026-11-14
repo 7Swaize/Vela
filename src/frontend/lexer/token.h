@@ -113,10 +113,10 @@ namespace vela::lex {
 
     constexpr std::string_view to_string(const TokenKind k) {
         switch (k) {
-#define X(name, str)      \
-    case TokenKind::name: \
-        return str;
-            VELA_TOKEN_KINDS(X)
+#define X(name, str)                    \
+            case TokenKind::name:       \
+                return str;
+                    VELA_TOKEN_KINDS(X)
 #undef X
         }
 
@@ -136,6 +136,18 @@ namespace vela::lex {
 
     inline std::string to_string(const Token &tok) {
         return std::format( "{{width: {}, kind: {}}}", tok.width, to_string(tok.kind));
+    }
+
+    constexpr inline bool is_trivia(const TokenKind k) {
+        switch (k) {
+#define X(name, str)                    \
+            case TokenKind::name:       \
+                return true;
+                    VELA_TRIVIA_TOKEN_KINDS(X)
+#undef X
+            default:
+                return false;
+        }
     }
 
     enum class LexErrorKind : uint8_t {

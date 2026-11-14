@@ -4,7 +4,19 @@
 // NOTE: THIS LEXER IS COMPLETELY AI GENERAED
 
 // Behavior the reference defines (edit HERE when the language spec changes):
-//   * Whitespace is " \t\r\n" and produces no token.
+//   * Tokens carry only a width (no start/end). The stream is gap-free: the widths of all tokens
+//     (trivia included) sum to the source length, so a token's start is the sum of the widths before it.
+//   * Whitespace is trivia and IS tokenized. A maximal run of one repeated byte becomes one token:
+//       ' ' -> SpaceTrivia, '\t' -> TabTrivia, '\n' -> NewlineTrivia, '\r' -> CarriageReturnTrivia.
+//     Runs of different whitespace bytes are separate tokens (so "\r\n" is two tokens).
+//   * Line comment: "//" up to, but not including, the next '\n' (or EOF) -> CommentTrivia.
+//       A '\r' before the '\n' is part of the comment. The '\n' is its own NewlineTrivia.
+//   * Block comment: "/*" through the first "*/" that starts after the opening "/*" -> MultilineCommentTrivia.
+//       "/*/" does not close itself and "/**/" does. Block comments do not nest.
+//       Unterminated -> MultilineCommentTrivia running to EOF (the diagnostic is reported separately).
+//   * Comment bodies are opaque: quotes, operators and invalid bytes inside them are not lexed.
+//     Comment markers inside a string are string content.
+//   * A lone '/' (not followed by '/' or '*') is Slash.
 //   * Identifier / keyword: [A-Za-z_][A-Za-z0-9_]*, keyword if it matches a Kw* entry.
 //   * Number: a maximal run of [A-Za-z0-9_] that starts with a digit.
 //       - all digits                      -> IntLiteral
@@ -15,12 +27,11 @@
 //   * Two-byte operators: == != <= >= << >> && ||
 //       If an operator is immediately followed by another operator
 //       (e.g. "===", "<<<", "&&&"), the entire byte sequence is an error,
-//       and lexing resumes at the end of the malformed oeprator block.
+//       and lexing resumes at the end of the malformed operator block.
 //   * Single-byte tokens come from VELA_SINGLE_CHAR_TOKENS.
 //   * Any other byte (':', '?', '\\' outside a string, NUL, bytes >= 0x80, ...)
 //       is a one-byte Error token.
-//   * Comments are not lexed yet (the grammar defines them, the lexer does not).
-//   * The stream always ends with Eof at {n, n}.
+//   * The stream always ends with a zero-width Eof.
 
 #include <string_view>
 #include <unordered_map>
@@ -45,6 +56,26 @@ namespace vela::unittests::lex {
 
     inline bool is_space(const unsigned char c) {
         return c == ' ' || c == '\t' || c == '\r' || c == '\n';
+    }
+
+    inline TokenKind whitespace_kind(const unsigned char c) {
+        switch (c) {
+            case ' ': return TokenKind::SpaceTrivia;
+            case '\t': return TokenKind::TabTrivia;
+            case '\n': return TokenKind::NewlineTrivia;
+            default: return TokenKind::CarriageReturnTrivia; // '\r'
+        }
+    }
+
+    inline bool is_trivia(const TokenKind k) {
+        switch (k) {
+#define X(name, str) case TokenKind::name:
+            VELA_TRIVIA_TOKEN_KINDS(X)
+#undef X
+                return true;
+            default:
+                return false;
+        }
     }
 
     inline TokenKind keyword_or_ident(const std::string_view word) {
@@ -99,11 +130,36 @@ namespace vela::unittests::lex {
         const auto n = static_cast<LexPos>(s.size());
         LexPos i = 0;
 
+        // Emits a token covering [from, to).
+        const auto emit = [&out](const LexPos from, const LexPos to, const TokenKind kind) {
+            out.push_back({to - from, kind});
+        };
+
         while (i < n) {
             const auto c = static_cast<unsigned char>(s[i]);
 
             if (is_space(c)) {
-                ++i;
+                LexPos j = i + 1;
+                while (j < n && s[j] == s[i]) ++j;
+                emit(i, j, whitespace_kind(c));
+                i = j;
+                continue;
+            }
+
+            if (c == '/' && i + 1 < n && s[i + 1] == '/') {
+                LexPos j = i + 2;
+                while (j < n && s[j] != '\n') ++j;
+                emit(i, j, TokenKind::CommentTrivia);
+                i = j;
+                continue;
+            }
+
+            if (c == '/' && i + 1 < n && s[i + 1] == '*') {
+                LexPos j = i + 2; // the opening "/*" can't double as the closing "*/"
+                while (j < n && !(s[j] == '*' && j + 1 < n && s[j + 1] == '/')) ++j;
+                j = j < n ? j + 2 : n;
+                emit(i, j, TokenKind::MultilineCommentTrivia);
+                i = j;
                 continue;
             }
 
@@ -121,10 +177,10 @@ namespace vela::unittests::lex {
                     }
                 }
                 if (closed) {
-                    out.push_back({i, j + 1, TokenKind::StringLiteral});
+                    emit(i, j + 1, TokenKind::StringLiteral);
                     i = j + 1;
                 } else {
-                    out.push_back({i, n, TokenKind::Error});
+                    emit(i, n, TokenKind::Error);
                     i = n;
                 }
                 continue;
@@ -135,7 +191,7 @@ namespace vela::unittests::lex {
                 while (j < n && is_word(static_cast<unsigned char>(s[j]))) ++j;
 
                 if (!is_digit(c)) {
-                    out.push_back({i, j, keyword_or_ident(s.substr(i, j - i))});
+                    emit(i, j, keyword_or_ident(s.substr(i, j - i)));
                     i = j;
                     continue;
                 }
@@ -152,10 +208,10 @@ namespace vela::unittests::lex {
                     for (LexPos m = j + 1; m < k; ++m) {
                         frac_digits &= is_digit(static_cast<unsigned char>(s[m]));
                     }
-                    out.push_back({i, k, frac_digits ? TokenKind::FloatLiteral : TokenKind::Error});
+                    emit(i, k, frac_digits ? TokenKind::FloatLiteral : TokenKind::Error);
                     i = k;
                 } else {
-                    out.push_back({i, j, all_digits ? TokenKind::IntLiteral : TokenKind::Error});
+                    emit(i, j, all_digits ? TokenKind::IntLiteral : TokenKind::Error);
                     i = j;
                 }
                 continue;
@@ -167,20 +223,20 @@ namespace vela::unittests::lex {
                     while (is_operator_pair_at(s, j)) {
                         ++j;
                     }
-                    out.push_back({i, ++j, TokenKind::Error});
+                    emit(i, ++j, TokenKind::Error);
                     i = j;
                 } else {
-                    out.push_back({i, i + 2, operator_kind(s[i], s[i + 1])});
+                    emit(i, i + 2, operator_kind(s[i], s[i + 1]));
                     i += 2;
                 }
                 continue;
             }
 
-            out.push_back({i, i + 1, single_kind(c)});
+            emit(i, i + 1, single_kind(c));
             ++i;
         }
 
-        out.push_back({n, n, TokenKind::Eof});
+        out.push_back({0, TokenKind::Eof});
         return out;
     }
 } // namspace vela::unittests:lex

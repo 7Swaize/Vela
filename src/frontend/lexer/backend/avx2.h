@@ -89,7 +89,7 @@ namespace vela::lex::avx2 {
         uint32_t real_quotes = quote & ~escaped;
         uint32_t in_str = 0, comment = 0, real_cstarts = 0;
 
-        if (VELA_LIKELY(!cstarts && state.context <= ExecutionContext::String)) {
+        if (VELA_LIKELY(!cstarts && !state.comment_carry && state.context <= ExecutionContext::String)) {
             // 1 from opening quote up to (not including) closing quote
             in_str = prefix_xor_dw(real_quotes) ^ (state.context == ExecutionContext::String ? 0xFFFFFFFF : 0);
             state.context = static_cast<int32_t>(in_str) >> 31 < 0 ? ExecutionContext::String : ExecutionContext::Code;

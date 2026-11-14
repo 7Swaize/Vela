@@ -102,7 +102,7 @@ namespace vela::lex::neon {
         // Comments
         uint16_t cstarts = movemask(vandq_u8(
             vceqq_u8(in, vdupq_n_u8('/')),
-            vorrq_u8(vceqq_u8(in, vdupq_n_u8('/')), vceqq_u8(in, vdupq_n_u8('*')))
+            vorrq_u8(vceqq_u8(next, vdupq_n_u8('/')), vceqq_u8(next, vdupq_n_u8('*')))
         ));
 
         // Strings
@@ -110,7 +110,7 @@ namespace vela::lex::neon {
         uint16_t real_quotes = quote & ~escaped;
         uint16_t in_str = 0, comment = 0, real_cstarts = 0;
 
-        if (VELA_LIKELY(!cstarts && state.context <= ExecutionContext::String)) {
+        if (VELA_LIKELY(!cstarts && !state.comment_carry && state.context <= ExecutionContext::String)) {
             // 1 from opening quote up to (not including) closing quote
             in_str = prefix_xor_hw(real_quotes) ^ (state.context == ExecutionContext::String ? 0xFFFF : 0);
             state.context = static_cast<int16_t>(in_str) >> 15 < 0 ? ExecutionContext::String : ExecutionContext::Code;
