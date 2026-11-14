@@ -8,6 +8,7 @@
 #include <type_traits>
 #include <vector>
 
+namespace vela::shared {
     template <typename T, std::size_t Alignment>
     struct AlignedAllocator {
         using value_type = T;
@@ -76,7 +77,7 @@
             }
 
             T *p = static_cast<T *>(alloc(n * sizeof(T), alignof(T)));
-            std::uninitialized_value_construct_n(p, n);
+            std::uninitialized_default_construct_n(p, n);
             return {p, n};
         }
 
@@ -101,9 +102,10 @@
         }
 
         [[nodiscard]] void *alloc_slow(const std::size_t size, const std::size_t alignment) {
-            std::byte *base = new_chunk(size);
+            const std::size_t cap = std::max(m_chunkSize, size + alignment);
+            std::byte *base = new_chunk(cap);
             m_cur = base;
-            m_end = base + m_chunkSize;
+            m_end = base + cap;
             return try_bump(size, alignment);
         }
 
@@ -116,7 +118,8 @@
         size_t m_chunkSize;
         std::byte *m_cur = nullptr;
         std::byte *m_end = nullptr;
-        std::vector<std::unique_ptr<std::byte>> m_chunks;
+        std::vector<std::unique_ptr<std::byte[]>> m_chunks;
     };
+}
 
 #endif //VELA_ALLOCATORS_H
