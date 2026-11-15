@@ -1,13 +1,12 @@
 #ifndef VELA_GREEN_NODE_H
 #define VELA_GREEN_NODE_H
 
-#include <optional>
 #include <string_view>
 #include <unordered_map>
+#include <span>
 #include <vector>
 
 #include "frontend/diagnostic.h"
-#include "shared/helpers.h"
 
 namespace vela::parse {
 #define VELA_TRIVIA_SYNTAX_NODE_KINDS(X)       \
@@ -104,13 +103,19 @@ namespace vela::parse {
     X(ObjectCreationExpressionSyntax)          \
     X(InitializerExpressionSyntax)             \
     X(ArrayCreationExpressionSyntax)           \
+    X(UndefinedSyntax)                         \
+
+#define VELA_LIST_SYNTAX_NODE_KINDS(X)         \
+    X(ListSyntax)                              \
+    X(SeparatedListSyntax)                     \
 
 #define VELA_NODE_KINDS(X)                     \
     VELA_TRIVIA_SYNTAX_NODE_KINDS(X)           \
     VELA_TERMINAL_SYNTAX_NODE_KINDS(X)         \
     VELA_NONTERMINAL_SYNTAX_NODE_KINDS(X)      \
+    VELA_LIST_SYNTAX_NODE_KINDS(X)             \
 
-    enum NodeKind : uint16_t {
+    enum class NodeKind : uint16_t {
 #define X(Kind) Kind,
         VELA_NODE_KINDS(X)
 #undef X
@@ -156,6 +161,9 @@ namespace vela::parse {
         }
 
         virtual const GreenNode *getSlot(int index) const = 0;
+        virtual NodeKind underlyingKind() const { return NodeKind::UndefinedSyntax; }
+
+        [[nodiscard]] uint16_t slotCount() const { return m_data.slotCount(); }
 
         [[nodiscard]] NodeKind kind() const { return m_kind; }
         [[nodiscard]] virtual bool isToken() const { return false; }
@@ -222,14 +230,14 @@ namespace vela::parse {
             return offset;
         }
 
-        std::optional<std::vector<Diagnostic *>> diagnostics() const {
+        std::span<Diagnostic *> diagnostics() const {
             if (hasFlag(HasDiagnosticsDirectly)) {
                 if (const auto it = m_diagnosticsTable.find(this); it != m_diagnosticsTable.end()) {
                     return it->second;
                 }
             }
 
-            return std::nullopt;
+            return {};
         }
 
     protected:
@@ -289,7 +297,7 @@ namespace vela::parse {
         GreenTrivia(NodeKind kind, std::string_view text, std::vector<Diagnostic *> diagnostics = emptyDiagnosticsBuf)
             : GreenNode(kind, std::move(diagnostics)), m_text(text)
         {
-            setFlags(kind == UnexpectedToken ? IsNotMissing | ContainsSkippedText : IsNotMissing);
+            setFlags(kind == NodeKind::UnexpectedToken ? IsNotMissing | ContainsSkippedText : IsNotMissing);
             setFullWidth(static_cast<NodePos>(text.size()));
         }
 
@@ -319,7 +327,7 @@ namespace vela::parse {
             : GreenNode(kind, std::move(diagnostics)), m_text(text),
               m_leading(leading), m_trailing(trailing)
         {
-            setFlags(kind == UnexpectedToken ? IsNotMissing | ContainsSkippedText : IsNotMissing);
+            setFlags(kind == NodeKind::UnexpectedToken ? IsNotMissing | ContainsSkippedText : IsNotMissing);
             setFullWidth(static_cast<NodePos>(text.size()));
 
             if (m_leading != nullptr) {
@@ -386,9 +394,11 @@ namespace vela::parse {
                 : nullptr;
         }
 
+        [[nodiscard]] NodeKind underlyingKind() const override { return m_underlyingKind; }
+
     protected:
-        GreenNodeList(NodeKind kind, std::vector<const GreenNode *> slots, std::vector<Diagnostic *> diagnostics = emptyDiagnosticsBuf)
-            : GreenNode(kind, std::move(diagnostics)), m_slots(std::move(slots))
+        GreenNodeList(NodeKind kind, NodeKind underlyingKind, std::vector<const GreenNode *> slots, std::vector<Diagnostic *> diagnostics = emptyDiagnosticsBuf)
+            : GreenNode(kind, std::move(diagnostics)), m_slots(std::move(slots)), m_underlyingKind(underlyingKind)
         {
             setSlotCount(static_cast<int>(m_slots.size()));
             for (const GreenNode *node : m_slots) {
@@ -400,6 +410,7 @@ namespace vela::parse {
 
     private:
         std::vector<const GreenNode *> m_slots;
+        NodeKind m_underlyingKind;
     };
 }
 

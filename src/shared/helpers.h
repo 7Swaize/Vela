@@ -51,6 +51,12 @@ namespace vela::shared {
         return value.has_value() ? value->size() : 0;
     }
     // clang-format on
+
+    template <typename T>
+    struct Range {
+        T start; // inclusive
+        T end; // exclusive
+    };
 } // namespace vela::shared
 
 #endif // VELA_HELPERS_H

@@ -10,7 +10,7 @@ namespace vela::parse {
     class GreenCompilationUnitSyntax final : public GreenNodeN<2> {
     public:
         GreenCompilationUnitSyntax(const GreenNode *declarations, const GreenToken *eof, std::vector<Diagnostic *> diagnostics = emptyDiagnosticsBuf)
-            : GreenNodeN(CompilationUnitSyntax, { declarations, eof }, std::move(diagnostics)) { }
+            : GreenNodeN(NodeKind::CompilationUnitSyntax, { declarations, eof }, std::move(diagnostics)) { }
 
         const GreenNode *declarations() const { return getSlot(0); }
         const GreenToken *eof() const { return static_cast<const GreenToken *>(getSlot(1)); }
@@ -20,27 +20,27 @@ namespace vela::parse {
     public:
         GreenClassDeclarationSyntax(
             const GreenToken *kw, const GreenToken *identifier, const GreenNode* block, std::vector<Diagnostic *> diagnostics = emptyDiagnosticsBuf)
-            : GreenNodeN(ClassDeclarationSyntax, { kw, identifier, block }, std::move(diagnostics)) { }
+            : GreenNodeN(NodeKind::ClassDeclarationSyntax, { kw, identifier, block }, std::move(diagnostics)) { }
 
         const GreenToken *kw() const { return static_cast<const GreenToken *>(getSlot(0)); }
         const GreenToken *identifier() const { return static_cast<const GreenToken *>(getSlot(1)); }
-        const GreenNode *body() const { return getSlot(2); }
+        const GreenNode *block() const { return getSlot(2); }
     };
 
     class GreenStructDeclarationSyntax final : public GreenNodeN<3> {
     public:
         GreenStructDeclarationSyntax(const GreenToken *kw, const GreenToken *identifier, const GreenNode* block, std::vector<Diagnostic *> diagnostics = emptyDiagnosticsBuf)
-            : GreenNodeN(StructDeclarationSyntax, { kw, identifier, block }, std::move(diagnostics)) { }
+            : GreenNodeN(NodeKind::StructDeclarationSyntax, { kw, identifier, block }, std::move(diagnostics)) { }
 
         const GreenToken *kw() const { return static_cast<const GreenToken *>(getSlot(0)); }
         const GreenToken *identifier() const { return static_cast<const GreenToken *>(getSlot(1)); }
-        const GreenNode *body() const { return getSlot(2); }
+        const GreenNode *block() const { return getSlot(2); }
     };
 
     class GreenFieldDeclarationSyntax final : public GreenNodeN<2> {
     public:
         GreenFieldDeclarationSyntax(const GreenNode *declaration, const GreenToken *semicolon, std::vector<Diagnostic *> diagnostics = emptyDiagnosticsBuf)
-            : GreenNodeN(FieldDeclarationSyntax, { declaration, semicolon }, std::move(diagnostics)) { }
+            : GreenNodeN(NodeKind::FieldDeclarationSyntax, { declaration, semicolon }, std::move(diagnostics)) { }
 
         const GreenNode *declaration() const { return getSlot(0); }
         const GreenToken *semicolon() const { return static_cast<const GreenToken *>(getSlot(1)); }
@@ -57,7 +57,7 @@ namespace vela::parse {
             const GreenToken *rparen,
             const GreenNode *block,
             std::vector<Diagnostic *> diagnostics = emptyDiagnosticsBuf)
-                : GreenNodeN(MethodDeclarationSyntax, { kw, ret, identifier, lparen, parameters, rparen, block }, std::move(diagnostics)) { }
+                : GreenNodeN(NodeKind::MethodDeclarationSyntax, { kw, ret, identifier, lparen, parameters, rparen, block }, std::move(diagnostics)) { }
 
         const GreenToken *kw() const { return static_cast<const GreenToken *>(getSlot(0)); }
         const GreenToken *ret() const { return static_cast<const GreenToken *>(getSlot(1)); }
@@ -71,7 +71,7 @@ namespace vela::parse {
     class GreenParameterSyntax final : public GreenNodeN<2> {
     public:
         GreenParameterSyntax(const GreenToken *type, const GreenToken *identifier, std::vector<Diagnostic *> diagnostics = emptyDiagnosticsBuf)
-            : GreenNodeN(ParameterSyntax, { type, identifier }, std::move(diagnostics)) { }
+            : GreenNodeN(NodeKind::ParameterSyntax, { type, identifier }, std::move(diagnostics)) { }
 
         const GreenToken *type() const { return static_cast<const GreenToken *>(getSlot(0)); }
         const GreenToken *identifier() const { return static_cast<const GreenToken *>(getSlot(1)); }
@@ -85,7 +85,7 @@ namespace vela::parse {
             const GreenToken *assign,
             const GreenNode *initializer,
             std::vector<Diagnostic *> diagnostics = emptyDiagnosticsBuf)
-                : GreenNodeN(VariableDeclarationSyntax, { type, identifier, assign, initializer }, std::move(diagnostics)) { }
+                : GreenNodeN(NodeKind::VariableDeclarationSyntax, { type, identifier, assign, initializer }, std::move(diagnostics)) { }
 
         const GreenToken *type() const { return static_cast<const GreenToken *>(getSlot(0)); }
         const GreenToken *identifier() const { return static_cast<const GreenToken *>(getSlot(1)); }
@@ -96,7 +96,7 @@ namespace vela::parse {
     class GreenPredefinedTypeSyntax final : public GreenNodeN<1> {
     public:
         explicit GreenPredefinedTypeSyntax(const GreenToken *type, std::vector<Diagnostic *> diagnostics = emptyDiagnosticsBuf)
-            : GreenNodeN(PredefinedTypeSyntax, { type }, std::move(diagnostics)) { }
+            : GreenNodeN(NodeKind::PredefinedTypeSyntax, { type }, std::move(diagnostics)) { }
 
         const GreenToken *type() const { return static_cast<const GreenToken *>(getSlot(0)); }
     };
@@ -104,7 +104,7 @@ namespace vela::parse {
     class GreenIdentifierNameSyntax final : public GreenNodeN<1> {
     public:
         explicit GreenIdentifierNameSyntax(const GreenToken *identifier, std::vector<Diagnostic *> diagnostics = emptyDiagnosticsBuf)
-            : GreenNodeN(IdentifierNameSyntax, { identifier }, std::move(diagnostics)) { }
+            : GreenNodeN(NodeKind::IdentifierNameSyntax, { identifier }, std::move(diagnostics)) { }
 
         const GreenToken *identifier() const { return static_cast<const GreenToken *>(getSlot(0)); }
     };
@@ -116,7 +116,7 @@ namespace vela::parse {
             const GreenToken *lbracket,
             const GreenToken *rbracket,
             std::vector<Diagnostic *> diagnostics = emptyDiagnosticsBuf)
-                : GreenNodeN(ArrayTypeSyntax, { type, lbracket, rbracket }, std::move(diagnostics)) { }
+                : GreenNodeN(NodeKind::ArrayTypeSyntax, { type, lbracket, rbracket }, std::move(diagnostics)) { }
 
         const GreenToken *type() const { return static_cast<const GreenToken *>(getSlot(0)); }
         const GreenToken *lbracket() const { return static_cast<const GreenToken *>(getSlot(1)); }
@@ -130,7 +130,7 @@ namespace vela::parse {
             const GreenNodeList *statements,
             const GreenToken *rbrace,
             std::vector<Diagnostic *> diagnostics = emptyDiagnosticsBuf)
-                : GreenNodeN(BlockSyntax, { lbrace, statements, rbrace }, std::move(diagnostics)) { }
+                : GreenNodeN(NodeKind::BlockSyntax, { lbrace, statements, rbrace }, std::move(diagnostics)) { }
 
         const GreenToken *lbrace() const { return static_cast<const GreenToken *>(getSlot(0)); }
         const GreenNodeList *statements() const { return static_cast<const GreenNodeList *>(getSlot(1)); }
@@ -140,7 +140,7 @@ namespace vela::parse {
     class GreenLocalDeclarationStatementSyntax final : public GreenNodeN<2> {
     public:
         GreenLocalDeclarationStatementSyntax(const GreenNode *declaration, const GreenToken *semicolon, std::vector<Diagnostic *> diagnostics = emptyDiagnosticsBuf)
-            : GreenNodeN(LocalDeclarationStatementSyntax, { declaration, semicolon }, std::move(diagnostics)) { }
+            : GreenNodeN(NodeKind::LocalDeclarationStatementSyntax, { declaration, semicolon }, std::move(diagnostics)) { }
 
         const GreenNode *declaration() const { return getSlot(0); }
         const GreenToken *semicolon() const { return static_cast<const GreenToken *>(getSlot(1)); }
@@ -149,7 +149,7 @@ namespace vela::parse {
     class GreenExpressionStatementSyntax final : public GreenNodeN<2> {
     public:
         GreenExpressionStatementSyntax(const GreenNode *expression, const GreenToken *semicolon, std::vector<Diagnostic *> diagnostics = emptyDiagnosticsBuf)
-            : GreenNodeN(ExpressionStatementSyntax, { expression, semicolon }, std::move(diagnostics)) { }
+            : GreenNodeN(NodeKind::ExpressionStatementSyntax, { expression, semicolon }, std::move(diagnostics)) { }
 
         const GreenNode *expression() const { return getSlot(0); }
         const GreenToken *semicolon() const { return static_cast<const GreenToken *>(getSlot(1)); }
@@ -166,7 +166,7 @@ namespace vela::parse {
             const GreenToken *kwElse,
             const GreenNode *elseStatement,
             std::vector<Diagnostic *> diagnostics = emptyDiagnosticsBuf)
-                : GreenNodeN(IfStatementSyntax, { kwIf, lparen, condition, rparen, statement, kwElse, elseStatement }, std::move(diagnostics) ) { }
+                : GreenNodeN(NodeKind::IfStatementSyntax, { kwIf, lparen, condition, rparen, statement, kwElse, elseStatement }, std::move(diagnostics) ) { }
 
         const GreenToken *kwIf() const { return static_cast<const GreenToken *>(getSlot(0)); }
         const GreenToken *lparen() const { return static_cast<const GreenToken *>(getSlot(1)); }
@@ -186,7 +186,7 @@ namespace vela::parse {
             const GreenToken *rparen,
             const GreenNode *statement,
             std::vector<Diagnostic *> diagnostics = emptyDiagnosticsBuf)
-                : GreenNodeN(WhileStatementSyntax, { kw, lparen, condition, rparen, statement }, std::move(diagnostics) ) { }
+                : GreenNodeN(NodeKind::WhileStatementSyntax, { kw, lparen, condition, rparen, statement }, std::move(diagnostics) ) { }
 
         const GreenToken *kw() const { return static_cast<const GreenToken *>(getSlot(0)); }
         const GreenToken *lparen() const { return static_cast<const GreenToken *>(getSlot(1)); }
@@ -208,7 +208,7 @@ namespace vela::parse {
             const GreenToken *rparen,
             const GreenNode *statement,
             std::vector<Diagnostic *> diagnostics = emptyDiagnosticsBuf)
-                : GreenNodeN(ForStatementSyntax, { kw, lparen, initializer, semi1, condition, semi2, increment, rparen, statement }, std::move(diagnostics) ) { }
+                : GreenNodeN(NodeKind::ForStatementSyntax, { kw, lparen, initializer, semi1, condition, semi2, increment, rparen, statement }, std::move(diagnostics) ) { }
 
         const GreenToken *kw() const { return static_cast<const GreenToken *>(getSlot(0)); }
         const GreenToken *lparen() const { return static_cast<const GreenToken *>(getSlot(1)); }
@@ -228,7 +228,7 @@ namespace vela::parse {
             const GreenNode *expression,
             const GreenToken *semicolon,
             std::vector<Diagnostic *> diagnostics = emptyDiagnosticsBuf)
-                : GreenNodeN(ReturnStatementSyntax, { kw, expression, semicolon }, std::move(diagnostics) ) { }
+                : GreenNodeN(NodeKind::ReturnStatementSyntax, { kw, expression, semicolon }, std::move(diagnostics) ) { }
 
         const GreenToken *kw() const { return static_cast<const GreenToken *>(getSlot(0)); }
         const GreenNode *expression() const { return getSlot(1); }
@@ -238,7 +238,7 @@ namespace vela::parse {
     class GreenLiteralExpressionSyntax final : public GreenNodeN<1> {
     public:
         explicit GreenLiteralExpressionSyntax(const GreenToken *literal, std::vector<Diagnostic *> diagnostics = emptyDiagnosticsBuf)
-            : GreenNodeN(LiteralExpressionSyntax, { literal }, std::move(diagnostics) ) { }
+            : GreenNodeN(NodeKind::LiteralExpressionSyntax, { literal }, std::move(diagnostics) ) { }
 
         const GreenToken *literal() const { return static_cast<const GreenToken *>(getSlot(0)); }
     };
@@ -246,7 +246,7 @@ namespace vela::parse {
     class GreenThisExpressionSyntax final : public GreenNodeN<1> {
     public:
         explicit GreenThisExpressionSyntax(const GreenToken *kw, std::vector<Diagnostic *> diagnostics = emptyDiagnosticsBuf)
-            : GreenNodeN(ThisExpressionSyntax, { kw }, std::move(diagnostics) ) { }
+            : GreenNodeN(NodeKind::ThisExpressionSyntax, { kw }, std::move(diagnostics) ) { }
 
         const GreenToken *kw() const { return static_cast<const GreenToken *>(getSlot(0)); }
     };
@@ -254,7 +254,7 @@ namespace vela::parse {
     class GreenPrefixUnaryExpressionSyntax final : public GreenNodeN<2> {
     public:
         GreenPrefixUnaryExpressionSyntax(const GreenToken *op, const GreenNode *operand, std::vector<Diagnostic *> diagnostics = emptyDiagnosticsBuf)
-            : GreenNodeN(PrefixUnaryExpressionSyntax, { op, operand }, std::move(diagnostics) ) { }
+            : GreenNodeN(NodeKind::PrefixUnaryExpressionSyntax, { op, operand }, std::move(diagnostics) ) { }
 
         const GreenToken *op() const { return static_cast<const GreenToken *>(getSlot(0)); }
         const GreenNode *operand() const { return getSlot(1); }
@@ -263,7 +263,7 @@ namespace vela::parse {
     class GreenPostfixUnaryExpressionSyntax final : public GreenNodeN<2> {
     public:
         GreenPostfixUnaryExpressionSyntax(const GreenToken *op, const GreenNode *operand, std::vector<Diagnostic *> diagnostics = emptyDiagnosticsBuf)
-            : GreenNodeN(PostfixUnaryExpressionSyntax, { op, operand }, std::move(diagnostics) ) { }
+            : GreenNodeN(NodeKind::PostfixUnaryExpressionSyntax, { op, operand }, std::move(diagnostics) ) { }
 
         const GreenToken *op() const { return static_cast<const GreenToken *>(getSlot(0)); }
         const GreenNode *operand() const { return getSlot(1); }
@@ -276,7 +276,7 @@ namespace vela::parse {
             const GreenToken *op,
             const GreenNode *rhs,
             std::vector<Diagnostic *> diagnostics = emptyDiagnosticsBuf)
-                : GreenNodeN(BinaryExpressionSyntax, { lhs, op, rhs }, std::move(diagnostics) ) { }
+                : GreenNodeN(NodeKind::BinaryExpressionSyntax, { lhs, op, rhs }, std::move(diagnostics) ) { }
 
         const GreenNode *lhs() const { return getSlot(0); }
         const GreenToken *op() const { return static_cast<const GreenToken *>(getSlot(1)); }
@@ -290,7 +290,7 @@ namespace vela::parse {
             const GreenToken *assignment,
             const GreenNode *rhs,
             std::vector<Diagnostic *> diagnostics = emptyDiagnosticsBuf)
-                : GreenNodeN(AssignmentExpressionSyntax, { lhs, assignment, rhs }, std::move(diagnostics) ) { }
+                : GreenNodeN(NodeKind::AssignmentExpressionSyntax, { lhs, assignment, rhs }, std::move(diagnostics) ) { }
 
         const GreenNode *lhs() const { return getSlot(0); }
         const GreenToken *assignment() const { return static_cast<const GreenToken *>(getSlot(1)); }
@@ -305,7 +305,7 @@ namespace vela::parse {
             const GreenNodeList *arguments,
             const GreenToken *rparen,
             std::vector<Diagnostic *> diagnostics = emptyDiagnosticsBuf)
-                : GreenNodeN(InvocationExpressionSyntax, { expression, lparen, arguments, rparen }, std::move(diagnostics) ) { }
+                : GreenNodeN(NodeKind::InvocationExpressionSyntax, { expression, lparen, arguments, rparen }, std::move(diagnostics) ) { }
 
         const GreenNode *expression() const { return getSlot(0); }
         const GreenToken *lparen() const { return static_cast<const GreenToken *>(getSlot(1)); }
@@ -321,7 +321,7 @@ namespace vela::parse {
             const GreenNode *index,
             const GreenToken *rbracket,
             std::vector<Diagnostic *> diagnostics = emptyDiagnosticsBuf)
-                : GreenNodeN(ElementAccessExpressionSyntax, { expression, lbracket, index, rbracket }, std::move(diagnostics) ) { }
+                : GreenNodeN(NodeKind::ElementAccessExpressionSyntax, { expression, lbracket, index, rbracket }, std::move(diagnostics) ) { }
 
         const GreenNode *expression() const { return getSlot(0); }
         const GreenToken *lbracket() const { return static_cast<const GreenToken *>(getSlot(1)); }
@@ -338,7 +338,7 @@ namespace vela::parse {
             const GreenNodeList *arguments,
             const GreenToken *rparen,
             std::vector<Diagnostic *> diagnostics = emptyDiagnosticsBuf)
-                : GreenNodeN(ObjectCreationExpressionSyntax, { kw, type, lparen, arguments, rparen }, std::move(diagnostics) ) { }
+                : GreenNodeN(NodeKind::ObjectCreationExpressionSyntax, { kw, type, lparen, arguments, rparen }, std::move(diagnostics) ) { }
 
         const GreenToken *kw() const { return static_cast<const GreenToken *>(getSlot(0)); }
         const GreenNode *type() const { return getSlot(1); }
@@ -354,7 +354,7 @@ namespace vela::parse {
             const GreenNodeList *expressions,
             const GreenToken *rbrace,
             std::vector<Diagnostic *> diagnostics = emptyDiagnosticsBuf)
-                : GreenNodeN(InitializerExpressionSyntax, { lbrace, expressions, rbrace }, std::move(diagnostics) ) { }
+                : GreenNodeN(NodeKind::InitializerExpressionSyntax, { lbrace, expressions, rbrace }, std::move(diagnostics) ) { }
 
         const GreenToken *lbrace() const { return static_cast<const GreenToken *>(getSlot(0)); }
         const GreenNodeList *expressions() const { return static_cast<const GreenNodeList *>(getSlot(1)); }
@@ -371,7 +371,7 @@ namespace vela::parse {
             const GreenToken *rbracket,
             const GreenNode *initializer,
             std::vector<Diagnostic *> diagnostics = emptyDiagnosticsBuf)
-                : GreenNodeN(ArrayCreationExpressionSyntax, { kw, type, lbracket, size, rbracket, initializer }, std::move(diagnostics) ) { }
+                : GreenNodeN(NodeKind::ArrayCreationExpressionSyntax, { kw, type, lbracket, size, rbracket, initializer }, std::move(diagnostics) ) { }
 
         const GreenToken *kw() const { return static_cast<const GreenToken *>(getSlot(0)); }
         const GreenNode *type() const { return getSlot(1); }

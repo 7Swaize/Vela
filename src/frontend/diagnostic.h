@@ -3,19 +3,16 @@
 
 #include <string>
 
+#include "shared/helpers.h"
+
 struct Position {
     uint32_t line;
     uint32_t character;
 };
 
-struct Range {
-    Position start; // inclusive
-    Position end; // exclusive
-};
-
 struct Diagnostic {
     std::string mesage;
-    Range span;
+    vela::shared::Range<Position> span;
 };
 
 #endif //VELA_DIAGNOSTIC_H
