@@ -7,7 +7,7 @@
 #include "green/green_node.h"
 
 namespace vela::parse {
-    inline SyntaxNode *create_syntax_node(const GreenNode *green, const SyntaxNode *parent, SyntaxTree *tree, const NodePos position) {
+    inline const SyntaxNode *create_syntax_node(const GreenNode *green, const SyntaxNode *parent, SyntaxTree *tree, const NodePos position) {
         switch (green->kind()) {
 #define X(Kind) case NodeKind::Kind:
             VELA_TERMINAL_SYNTAX_NODE_KINDS(X)
