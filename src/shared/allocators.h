@@ -53,21 +53,46 @@ namespace vela::shared {
     public:
         explicit ArenaAllocator(const std::size_t chunkSize = 64 * 1024) noexcept : m_chunkSize(chunkSize) {}
 
+        ~ArenaAllocator() {
+            while (m_dtors) {
+                m_dtors->destroy(m_dtors->obj);
+                m_dtors = m_dtors->next;
+            }
+        }
+
         ArenaAllocator(const ArenaAllocator &) = delete;
         ArenaAllocator &operator=(const ArenaAllocator &) = delete;
         ArenaAllocator(ArenaAllocator &&) noexcept = default;
         ArenaAllocator &operator=(ArenaAllocator &&) noexcept = default;
 
-        template <typename T, typename... Args> requires std::is_trivially_destructible_v<T>
+        template <typename T, typename... Args>
         [[nodiscard]] T *make(Args &&...args) {
-            return ::new (alloc(sizeof(T), alignof(T))) T{std::forward<Args>(args)...};
+            T *obj = ::new (alloc(sizeof(T), alignof(T))) T{std::forward<Args>(args)...};
+            if constexpr (!std::is_trivially_destructible_v<T>) {
+                Dtor *dtor = ::new (alloc(sizeof(Dtor), alignof(Dtor))) Dtor{
+                    [](void *ptr) { static_cast<T *>(ptr)->~T(); },
+                    obj,
+                    m_dtors
+                };
+                m_dtors = dtor;
+            }
+
+            return obj;
         }
 
-        template <typename T, typename Func, typename... Args>
-            requires std::is_trivially_destructible_v<T> && std::is_invocable_r_v<T*, Func, void*, Args...>
+        template <typename T, typename Func, typename... Args> requires std::is_invocable_r_v<T*, Func, void*, Args...>
         [[nodiscard]] T *make(Func &&func, Args &&...args) {
-            void* memory = alloc(sizeof(T), alignof(T));
-            return std::forward<Func>(func)(memory, std::forward<Args>(args)...);
+            T *obj = std::forward<Func>(func)(alloc(sizeof(T), alignof(T)), std::forward<Args>(args)...);
+            if constexpr (!std::is_trivially_destructible_v<T>) {
+                Dtor *dtor = ::new (alloc(sizeof(Dtor), alignof(Dtor))) Dtor{
+                    [](void *ptr) { static_cast<T *>(ptr)->~T(); },
+                    obj,
+                    m_dtors
+                };
+                m_dtors = dtor;
+            }
+
+            return obj;
         }
 
         template <typename T> requires std::is_trivially_destructible_v<T>
@@ -82,6 +107,12 @@ namespace vela::shared {
         }
 
     private:
+        struct Dtor {
+            void (*destroy)(void *);
+            void *obj;
+            Dtor *next;
+        };
+
         [[nodiscard]] void *alloc(const std::size_t size, const std::size_t alignment) {
             if (void *p = try_bump(size, alignment)) {
                 return p;
@@ -119,6 +150,7 @@ namespace vela::shared {
         std::byte *m_cur = nullptr;
         std::byte *m_end = nullptr;
         std::vector<std::unique_ptr<std::byte[]>> m_chunks;
+        Dtor *m_dtors = nullptr;
     };
 }
 

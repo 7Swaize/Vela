@@ -6,115 +6,10 @@
 #include <span>
 #include <vector>
 
+#include "green_node_fwds.h"
 #include "frontend/diagnostic.h"
 
 namespace vela::parse {
-#define VELA_TRIVIA_SYNTAX_NODE_KINDS(X)       \
-    X(NewlineTrivia)                           \
-    X(SpacesTrivia)                            \
-    X(TabsTrivia)                              \
-    X(CommentTrivia)                           \
-    X(MultilineCommentTrivia)                  \
-    X(UnexpectedToken)
-
-#define VELA_TERMINAL_SYNTAX_NODE_KINDS(X)     \
-    X(EofToken)                                \
-    X(IdentifierToken)                         \
-    X(IntLiteralToken)                         \
-    X(FloatLiteralToken)                       \
-    X(StringLiteralToken)                      \
-    X(KwStructToken)                           \
-    X(KwClassToken)                            \
-    X(KwFnToken)                               \
-    X(KwIfToken)                               \
-    X(KwElseToken)                             \
-    X(KwWhileToken)                            \
-    X(KwForToken)                              \
-    X(KwReturnToken)                           \
-    X(KwTrueToken)                             \
-    X(KwFalseToken)                            \
-    X(KwNullToken)                             \
-    X(KwThisToken)                             \
-    X(KwNewToken)                              \
-    X(KwVoidToken)                             \
-    X(KwIntToken)                              \
-    X(KwFloatToken)                            \
-    X(KwBoolToken)                             \
-    X(KwStringToken)                           \
-    X(LParenToken)                             \
-    X(RParenToken)                             \
-    X(LBracketToken)                           \
-    X(RBracketToken)                           \
-    X(LBraceToken)                             \
-    X(RBraceToken)                             \
-    X(CommaToken)                              \
-    X(DotToken)                                \
-    X(SemicolonToken)                          \
-    X(PlusToken)                               \
-    X(MinusToken)                              \
-    X(StarToken)                               \
-    X(SlashToken)                              \
-    X(PercentToken)                            \
-    X(ExclToken)                               \
-    X(TildeToken)                              \
-    X(AmpToken)                                \
-    X(PipeToken)                               \
-    X(CaretToken)                              \
-    X(LtToken)                                 \
-    X(GtToken)                                 \
-    X(AssignToken)                             \
-    X(AmpAmpToken)                             \
-    X(PipePipeToken)                           \
-    X(EqEqToken)                               \
-    X(ExclEqToken)                             \
-    X(LtEqToken)                               \
-    X(GtEqToken)                               \
-    X(LtLtToken)                               \
-    X(GtGtToken)                               \
-    X(ErrorToken)                              \
-    X(MissingToken)                            \
-
-#define VELA_NONTERMINAL_SYNTAX_NODE_KINDS(X)  \
-    X(CompilationUnitSyntax)                   \
-    X(ClassDeclarationSyntax)                  \
-    X(StructDeclarationSyntax)                 \
-    X(FieldDeclarationSyntax)                  \
-    X(MethodDeclarationSyntax)                 \
-    X(ParameterSyntax)                         \
-    X(VariableDeclarationSyntax)               \
-    X(PredefinedTypeSyntax)                    \
-    X(IdentifierNameSyntax)                    \
-    X(ArrayTypeSyntax)                         \
-    X(BlockSyntax)                             \
-    X(LocalDeclarationStatementSyntax)         \
-    X(ExpressionStatementSyntax)               \
-    X(IfStatementSyntax)                       \
-    X(WhileStatementSyntax)                    \
-    X(ForStatementSyntax)                      \
-    X(ReturnStatementSyntax)                   \
-    X(LiteralExpressionSyntax)                 \
-    X(ThisExpressionSyntax)                    \
-    X(PrefixUnaryExpressionSyntax)             \
-    X(PostfixUnaryExpressionSyntax)            \
-    X(BinaryExpressionSyntax)                  \
-    X(AssignmentExpressionSyntax)              \
-    X(InvocationExpressionSyntax)              \
-    X(ElementAccessExpressionSyntax)           \
-    X(ObjectCreationExpressionSyntax)          \
-    X(InitializerExpressionSyntax)             \
-    X(ArrayCreationExpressionSyntax)           \
-    X(UndefinedSyntax)                         \
-
-#define VELA_LIST_SYNTAX_NODE_KINDS(X)         \
-    X(ListSyntax)                              \
-    X(SeparatedListSyntax)                     \
-
-#define VELA_NODE_KINDS(X)                     \
-    VELA_TRIVIA_SYNTAX_NODE_KINDS(X)           \
-    VELA_TERMINAL_SYNTAX_NODE_KINDS(X)         \
-    VELA_NONTERMINAL_SYNTAX_NODE_KINDS(X)      \
-    VELA_LIST_SYNTAX_NODE_KINDS(X)             \
-
     enum class NodeKind : uint16_t {
 #define X(Kind) Kind,
         VELA_NODE_KINDS(X)
@@ -147,8 +42,6 @@ namespace vela::parse {
         );
     }
 
-    using NodePos = uint32_t;
-
     class GreenNode {
     public:
         GreenNode(const GreenNode &) = delete;
@@ -163,29 +56,29 @@ namespace vela::parse {
         virtual const GreenNode *getSlot(int index) const = 0;
         virtual NodeKind underlyingKind() const { return NodeKind::UndefinedSyntax; }
 
-        [[nodiscard]] uint16_t slotCount() const { return m_data.slotCount(); }
+        uint16_t slotCount() const { return m_data.slotCount(); }
 
-        [[nodiscard]] NodeKind kind() const { return m_kind; }
-        [[nodiscard]] virtual bool isToken() const { return false; }
-        [[nodiscard]] virtual bool isTrivia() const { return false; }
+        NodeKind kind() const { return m_kind; }
+        virtual bool isToken() const { return false; }
+        virtual bool isTrivia() const { return false; }
 
-        [[nodiscard]] NodeFlags flags() const { return m_data.flags(); }
-        [[nodiscard]] bool hasFlag(NodeFlags flag) const { return m_data.flags() & flag; }
-        [[nodiscard]] bool containsDiagnostics() const { return hasFlag(ContainsDiagnostics); }
-        [[nodiscard]] bool containsSkippedText() const { return hasFlag(ContainsSkippedText); }
+        NodeFlags flags() const { return m_data.flags(); }
+        bool hasFlag(NodeFlags flag) const { return m_data.flags() & flag; }
+        bool containsDiagnostics() const { return hasFlag(ContainsDiagnostics); }
+        bool containsSkippedText() const { return hasFlag(ContainsSkippedText); }
 
-        [[nodiscard]] NodePos fullWidth() const { return m_fullWidth; }
-        [[nodiscard]] NodePos width() const { return m_fullWidth - leadingTriviaWidth() - trailingTriviaWidth(); }
-        [[nodiscard]] virtual NodePos leadingTriviaWidth() const {
+        NodePos fullWidth() const { return m_fullWidth; }
+        NodePos width() const { return m_fullWidth - leadingTriviaWidth() - trailingTriviaWidth(); }
+        virtual NodePos leadingTriviaWidth() const {
             return m_fullWidth != 0 ? firstTerminal()->leadingTriviaWidth() : 0;
         }
-        [[nodiscard]] virtual NodePos trailingTriviaWidth() const {
+        virtual NodePos trailingTriviaWidth() const {
             return m_fullWidth != 0 ? lastTerminal()->trailingTriviaWidth() : 0;
         }
-        [[nodiscard]] bool hasLeadingTrivia() const { return leadingTriviaWidth() > 0; }
-        [[nodiscard]] bool hasTrailingTrivia() const { return trailingTriviaWidth() > 0; }
+        bool hasLeadingTrivia() const { return leadingTriviaWidth() > 0; }
+        bool hasTrailingTrivia() const { return trailingTriviaWidth() > 0; }
 
-        [[nodiscard]] const GreenNode *firstTerminal() const {
+        const GreenNode *firstTerminal() const {
             const GreenNode *node = this;
 
             do {
@@ -202,7 +95,7 @@ namespace vela::parse {
             return node;
         }
 
-        [[nodiscard]] const GreenNode *lastTerminal() const {
+        const GreenNode *lastTerminal() const {
             const GreenNode *node = this;
 
             do {
@@ -219,7 +112,7 @@ namespace vela::parse {
             return node;
         }
 
-        [[nodiscard]] virtual int getSlotOffset(int idx) const {
+        virtual int getSlotOffset(int idx) const {
             int offset = 0;
             for (int i = 0; i < idx; ++i) {
                 if (const GreenNode *child = getSlot(i); child != nullptr) {
@@ -264,11 +157,11 @@ namespace vela::parse {
 
     private:
         struct NodeDataPacked {
-            [[nodiscard]] uint16_t slotCount() const {
+            uint16_t slotCount() const {
                 return data & SlotCountMask;
             }
 
-            [[nodiscard]] NodeFlags flags() const {
+            NodeFlags flags() const {
                 return static_cast<NodeFlags>((data & FlagsMask) >> ShiftCountForFlags);
             }
 
@@ -301,17 +194,17 @@ namespace vela::parse {
             setFullWidth(static_cast<NodePos>(text.size()));
         }
 
-        [[nodiscard]] bool isTrivia() const override { return true; }
-        [[nodiscard]] std::string_view text() const { return m_text; }
+        bool isTrivia() const override { return true; }
+        std::string_view text() const { return m_text; }
 
         // Trivia has no slots
-        [[nodiscard]] const GreenNode *getSlot(int index) const override {
+        const GreenNode *getSlot(int index) const override {
             (void)index;
             return nullptr;
         }
 
-        [[nodiscard]] NodePos leadingTriviaWidth() const override { return 0; }
-        [[nodiscard]] NodePos trailingTriviaWidth() const override { return 0; }
+        NodePos leadingTriviaWidth() const override { return 0; }
+        NodePos trailingTriviaWidth() const override { return 0; }
 
     private:
         std::string_view m_text;
@@ -339,21 +232,21 @@ namespace vela::parse {
             }
         }
 
-        [[nodiscard]] bool isToken() const override { return true; }
-        [[nodiscard]] std::string_view text() const { return m_text; }
-        [[nodiscard]] const GreenNode *leading() const { return m_leading; }
-        [[nodiscard]] const GreenNode *trailing() const { return m_trailing; }
+        bool isToken() const override { return true; }
+        std::string_view text() const { return m_text; }
+        const GreenNode *leading() const { return m_leading; }
+        const GreenNode *trailing() const { return m_trailing; }
 
         // Tokens are terminal, thus they cannot have children
-        [[nodiscard]] const GreenNode *getSlot(int index) const override {
+        const GreenNode *getSlot(int index) const override {
             (void)index;
             return nullptr;
         }
 
-        [[nodiscard]] NodePos leadingTriviaWidth() const override {
+        NodePos leadingTriviaWidth() const override {
             return m_leading != nullptr ? m_leading->fullWidth() : 0;
         }
-        [[nodiscard]] NodePos trailingTriviaWidth() const override {
+        NodePos trailingTriviaWidth() const override {
             return m_trailing != nullptr ? m_trailing->fullWidth() : 0;
         }
 
@@ -394,7 +287,7 @@ namespace vela::parse {
                 : nullptr;
         }
 
-        [[nodiscard]] NodeKind underlyingKind() const override { return m_underlyingKind; }
+        NodeKind underlyingKind() const override { return m_underlyingKind; }
 
     protected:
         GreenNodeList(NodeKind kind, NodeKind underlyingKind, std::vector<const GreenNode *> slots, std::vector<Diagnostic *> diagnostics = emptyDiagnosticsBuf)

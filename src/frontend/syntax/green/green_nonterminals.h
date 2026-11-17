@@ -3,8 +3,8 @@
 
 #include <vector>
 
-#include "frontend/diagnostic.h"
 #include "green_node.h"
+#include "frontend/diagnostic.h"
 
 namespace vela::parse {
     class GreenCompilationUnitSyntax final : public GreenNodeN<2> {
@@ -118,7 +118,7 @@ namespace vela::parse {
             std::vector<Diagnostic *> diagnostics = emptyDiagnosticsBuf)
                 : GreenNodeN(NodeKind::ArrayTypeSyntax, { type, lbracket, rbracket }, std::move(diagnostics)) { }
 
-        const GreenToken *type() const { return static_cast<const GreenToken *>(getSlot(0)); }
+        const GreenToken *elementType() const { return static_cast<const GreenToken *>(getSlot(0)); }
         const GreenToken *lbracket() const { return static_cast<const GreenToken *>(getSlot(1)); }
         const GreenToken *rbracket() const { return static_cast<const GreenToken *>(getSlot(2)); }
     };
@@ -195,30 +195,32 @@ namespace vela::parse {
         const GreenNode *statement() const { return getSlot(4); }
     };
 
-    class GreenForStatementSyntax final : public GreenNodeN<9> {
+    class GreenForStatementSyntax final : public GreenNodeN<10> {
     public:
         GreenForStatementSyntax(
             const GreenToken *kw,
             const GreenToken *lparen,
             const GreenNode *initializer,
+            const GreenNodeList *initializers,
             const GreenToken *semi1,
             const GreenNode *condition,
             const GreenToken *semi2,
-            const GreenNode *increment,
+            const GreenNodeList *incrementors,
             const GreenToken *rparen,
             const GreenNode *statement,
             std::vector<Diagnostic *> diagnostics = emptyDiagnosticsBuf)
-                : GreenNodeN(NodeKind::ForStatementSyntax, { kw, lparen, initializer, semi1, condition, semi2, increment, rparen, statement }, std::move(diagnostics) ) { }
+                : GreenNodeN(NodeKind::ForStatementSyntax, { kw, lparen, initializer, initializers, semi1, condition, semi2, incrementors, rparen, statement }, std::move(diagnostics) ) { }
 
-        const GreenToken *kw() const { return static_cast<const GreenToken *>(getSlot(0)); }
-        const GreenToken *lparen() const { return static_cast<const GreenToken *>(getSlot(1)); }
-        const GreenNode *initializer() const { return getSlot(2); }
-        const GreenToken *semi1() const { return static_cast<const GreenToken *>(getSlot(3)); }
-        const GreenNode *condition() const { return getSlot(4); }
-        const GreenToken *semi2() const { return static_cast<const GreenToken *>(getSlot(5)); }
-        const GreenNode *increment() const { return getSlot(6); }
-        const GreenToken *rparen() const { return static_cast<const GreenToken *>(getSlot(7)); }
-        const GreenNode *statement() const { return getSlot(8); }
+        const GreenToken* kw() const { return static_cast<const GreenToken*>(getSlot(0)); }
+        const GreenToken* lparen() const { return static_cast<const GreenToken*>(getSlot(1)); }
+        const GreenNode* initializer() const { return getSlot(2); }
+        const GreenNodeList* initializers() const { return static_cast<const GreenNodeList*>(getSlot(3)); }
+        const GreenToken* semi1() const { return static_cast<const GreenToken*>(getSlot(4)); }
+        const GreenNode* condition() const { return getSlot(5); }
+        const GreenToken* semi2() const { return static_cast<const GreenToken*>(getSlot(6)); }
+        const GreenNodeList* incrementors() const { return static_cast<const GreenNodeList*>(getSlot(7)); }
+        const GreenToken* rparen() const { return static_cast<const GreenToken*>(getSlot(8)); }
+        const GreenNode* statement() const { return getSlot(9); }
     };
 
     class GreenReturnStatementSyntax final : public GreenNodeN<3> {
