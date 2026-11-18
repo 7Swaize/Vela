@@ -8,7 +8,7 @@
 #include <span>
 #include <vector>
 
-#include "syntax_tree.h"
+#include "syntax_node_fwds.h"
 #include "frontend/diagnostic.h"
 #include "green/green_node.h"
 
@@ -36,18 +36,18 @@ namespace vela::parse {
         const SyntaxNode *parent() const { return m_parent; }
 
         template <RequiresSyntaxNode T>
-        const T *getOptionalNode(const T *target, int index) {
+        const T *getOptionalNode(const T *&target, int index) {
             if (target == nullptr) {
-                target = static_cast<const T *>(getOrCreateChildren()[index]);
+                target = static_cast<const T *>(getOrCreateChildren()[static_cast<std::size_t>(index)]);
             }
 
             return target;
         }
 
         template <RequiresSyntaxNode T>
-        const T *getRequiredNode(const T *target, int index) {
+        const T *getRequiredNode(const T *&target, int index) {
             if (target == nullptr) {
-                target = static_cast<const T *>(getOrCreateChildren()[index]);
+                target = static_cast<const T *>(getOrCreateChildren()[static_cast<std::size_t>(index)]);
             }
 
             assert(target != nullptr);
@@ -152,7 +152,7 @@ namespace vela::parse {
             Iterator_() noexcept = default;
             explicit Iterator_(const SyntaxNode *const *ptr) noexcept : m_ptr(ptr) { }
 
-            reference operator*() const { return *m_ptr; }
+            reference operator*() const { return static_cast<reference>(*m_ptr); }
 
             Iterator_ &operator++() {
                 ++m_ptr;
@@ -216,7 +216,7 @@ namespace vela::parse {
             Iterator_() noexcept = default;
             explicit Iterator_(const SyntaxNode *const *ptr, const SyntaxNode *const *end) noexcept : m_ptr(ptr), m_end(end) { }
 
-            reference operator*() const { return *m_ptr; }
+            reference operator*() const { return static_cast<reference>(*m_ptr); }
 
             Iterator_ &operator++() {
                 m_end - m_ptr <= 2 ? m_ptr = m_end : m_ptr += 2;
@@ -240,11 +240,15 @@ namespace vela::parse {
         using const_iterator = Iterator_;
 
         const_iterator begin() const {
-            return m_node == nullptr ? const_iterator(nullptr) : const_iterator(m_node->children().data(), m_node->children().end());
+            return m_node == nullptr
+                ? const_iterator(nullptr)
+                : const_iterator(m_node->children().data(), m_node->children().data() + m_node->children().size());
         }
 
         const_iterator end() const {
-            return m_node == nullptr ? const_iterator(nullptr) : const_iterator(m_node->children().end());
+            return m_node == nullptr
+                ? const_iterator(nullptr)
+                : const_iterator(m_node->children().data() + m_node->children().size(), m_node->children().data() + m_node->children().size());
         }
 
     private:

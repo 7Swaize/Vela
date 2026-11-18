@@ -123,18 +123,20 @@ namespace vela::parse {
         const GreenToken *rbracket() const { return static_cast<const GreenToken *>(getSlot(2)); }
     };
 
-    class GreenBlockSyntax final : public GreenNodeN<3> {
+    class GreenBlockSyntax final : public GreenNodeN<4> {
     public:
         GreenBlockSyntax(
             const GreenToken *lbrace,
             const GreenNodeList *statements,
+            const GreenNodeList *declarations,
             const GreenToken *rbrace,
             std::vector<Diagnostic *> diagnostics = emptyDiagnosticsBuf)
-                : GreenNodeN(NodeKind::BlockSyntax, { lbrace, statements, rbrace }, std::move(diagnostics)) { }
+                : GreenNodeN(NodeKind::BlockSyntax, { lbrace, statements, declarations, rbrace }, std::move(diagnostics)) { }
 
         const GreenToken *lbrace() const { return static_cast<const GreenToken *>(getSlot(0)); }
         const GreenNodeList *statements() const { return static_cast<const GreenNodeList *>(getSlot(1)); }
-        const GreenToken *rbrace() const { return static_cast<const GreenToken *>(getSlot(2)); }
+        const GreenNodeList *declarations() const { return static_cast<const GreenNodeList *>(getSlot(2)); }
+        const GreenToken *rbrace() const { return static_cast<const GreenToken *>(getSlot(3)); }
     };
 
     class GreenLocalDeclarationStatementSyntax final : public GreenNodeN<2> {

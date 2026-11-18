@@ -11,7 +11,7 @@ struct Position {
 };
 
 struct Diagnostic {
-    std::string mesage;
+    std::string message;
     vela::shared::Range<Position> span;
 };
 

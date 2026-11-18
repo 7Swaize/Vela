@@ -108,7 +108,8 @@ namespace {
     }
 
     TokenVec inv_real(const std::string_view src) {
-        return lex(vela::shared::FileSourceBuffer<backend::SimdWord>::from_string(src, kBufferCreationConfig));
+        Lexer lexer{};
+        return lexer.lex(vela::shared::FileSourceBuffer<backend::SimdWord>::from_string(src, kBufferCreationConfig));
     }
 
     TokenVec inv_ref(const std::string_view src) {

@@ -23,6 +23,8 @@ namespace vela::parse {
 #define X(Name) class Name;
     VELA_NONTERMINAL_SYNTAX_NODE_KINDS(X)
 #undef X
+
+    class SyntaxTree;
 }
 
 #endif //VELA_SYNTAX_NODE_FWDS_H

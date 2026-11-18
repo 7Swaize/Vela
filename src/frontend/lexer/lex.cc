@@ -301,7 +301,7 @@ namespace vela::lex {
         return tokens;
     }
 
-    std::vector<Token> lex(const shared::FileSourceBuffer<backend::SimdWord>& src) {
+    std::vector<Token> Lexer::lex(const shared::FileSourceBuffer<backend::SimdWord>& src) {
         const auto nBlocks = static_cast<LexPos>(src.alignedSize() / sizeof(backend::SimdWord));
 
         Stage1 stage{nBlocks};

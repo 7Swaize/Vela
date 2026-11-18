@@ -3,7 +3,6 @@
 
 #include "syntax_node.h"
 #include "syntax_node_fwds.h"
-#include "syntax_tree.h"
 
 #define VELA_SYNTAX_NODE_CTOR(Name, Base)                                                                   \
     Name(const GreenNode *green, const SyntaxNode *parent, const SyntaxTree *tree, const NodePos position)  \
@@ -192,7 +191,7 @@ namespace vela::parse {
 
         const SyntaxToken *kwNew() { return getRequiredNode<SyntaxToken>(m_kwNew, 0); }
         const TypeSyntax *targetType() { return getRequiredNode<TypeSyntax>(m_targetType, 1); }
-        const SyntaxToken *lbrace() { return getRequiredNode<SyntaxToken>(m_lbrace, 2); }
+        const SyntaxToken *lparen() { return getRequiredNode<SyntaxToken>(m_lbrace, 2); }
         SeparatedSyntaxList<ExpressionSyntax> arguments() {
             return SeparatedSyntaxList<ExpressionSyntax>(getOptionalNode<SeparatedListSyntax>(m_arguments, 3));
         }

@@ -16,7 +16,7 @@ namespace vela::parse {
 #undef X
     };
 
-    enum NodeFlags : uint16_t {
+    enum class NodeFlags : uint16_t {
         None = 0,
         IsNotMissing = 1 << 0,
 
@@ -48,7 +48,7 @@ namespace vela::parse {
         GreenNode& operator=(const GreenNode &) = delete;
 
         virtual ~GreenNode() {
-            if (hasFlag(HasDiagnosticsDirectly)) {
+            if (hasFlag(NodeFlags::HasDiagnosticsDirectly)) {
                 m_diagnosticsTable.erase(this);
             }
         }
@@ -63,9 +63,9 @@ namespace vela::parse {
         virtual bool isTrivia() const { return false; }
 
         NodeFlags flags() const { return m_data.flags(); }
-        bool hasFlag(NodeFlags flag) const { return m_data.flags() & flag; }
-        bool containsDiagnostics() const { return hasFlag(ContainsDiagnostics); }
-        bool containsSkippedText() const { return hasFlag(ContainsSkippedText); }
+        bool hasFlag(NodeFlags flag) const { return static_cast<int>(m_data.flags() & flag); }
+        bool containsDiagnostics() const { return hasFlag(NodeFlags::ContainsDiagnostics); }
+        bool containsSkippedText() const { return hasFlag(NodeFlags::ContainsSkippedText); }
 
         NodePos fullWidth() const { return m_fullWidth; }
         NodePos width() const { return m_fullWidth - leadingTriviaWidth() - trailingTriviaWidth(); }
@@ -124,7 +124,7 @@ namespace vela::parse {
         }
 
         std::span<Diagnostic *> diagnostics() const {
-            if (hasFlag(HasDiagnosticsDirectly)) {
+            if (hasFlag(NodeFlags::HasDiagnosticsDirectly)) {
                 if (const auto it = m_diagnosticsTable.find(this); it != m_diagnosticsTable.end()) {
                     return it->second;
                 }
@@ -138,7 +138,7 @@ namespace vela::parse {
 
         GreenNode(NodeKind kind, std::vector<Diagnostic *> diagnostics) : m_kind(kind) {
             if (!diagnostics.empty()) {
-                m_data.setFlags(HasDiagnosticsDirectly | ContainsDiagnostics);
+                m_data.setFlags(NodeFlags::HasDiagnosticsDirectly | NodeFlags::ContainsDiagnostics);
                 m_diagnosticsTable[this] = std::move(diagnostics);
             }
         }
@@ -148,7 +148,7 @@ namespace vela::parse {
         void setFullWidth(NodePos width) { m_fullWidth = width; }
 
         void adjustFlagsAndWidth(const GreenNode *node) {
-            m_data.setFlags(node->m_data.flags() & InheritMask);
+            m_data.setFlags(node->m_data.flags() & NodeFlags::InheritMask);
             m_fullWidth += node->m_fullWidth;
         }
 
@@ -190,7 +190,7 @@ namespace vela::parse {
         GreenTrivia(NodeKind kind, std::string_view text, std::vector<Diagnostic *> diagnostics = emptyDiagnosticsBuf)
             : GreenNode(kind, std::move(diagnostics)), m_text(text)
         {
-            setFlags(kind == NodeKind::UnexpectedToken ? IsNotMissing | ContainsSkippedText : IsNotMissing);
+            setFlags(kind == NodeKind::UnexpectedToken ? NodeFlags::IsNotMissing | NodeFlags::ContainsSkippedText : NodeFlags::IsNotMissing);
             setFullWidth(static_cast<NodePos>(text.size()));
         }
 
@@ -220,7 +220,7 @@ namespace vela::parse {
             : GreenNode(kind, std::move(diagnostics)), m_text(text),
               m_leading(leading), m_trailing(trailing)
         {
-            setFlags(kind == NodeKind::UnexpectedToken ? IsNotMissing | ContainsSkippedText : IsNotMissing);
+            setFlags(kind == NodeKind::UnexpectedToken ? NodeFlags::IsNotMissing | NodeFlags::ContainsSkippedText : NodeFlags::IsNotMissing);
             setFullWidth(static_cast<NodePos>(text.size()));
 
             if (m_leading != nullptr) {

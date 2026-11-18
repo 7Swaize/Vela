@@ -1,6 +1,7 @@
 #ifndef VELA_HELPERS_H
 #define VELA_HELPERS_H
 
+#include <concepts>
 #include <format>
 #include <memory>
 #include <ranges>
@@ -52,7 +53,7 @@ namespace vela::shared {
     }
     // clang-format on
 
-    template <typename T>
+    template <std::totally_ordered T>
     struct Range {
         T start; // inclusive
         T end; // exclusive

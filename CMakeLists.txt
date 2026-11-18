@@ -111,6 +111,8 @@ target_link_libraries(vela_lexer
 add_library(vela_parser STATIC
     src/frontend/diagnostic.h
 
+    src/frontend/parser/blender.cc
+    src/frontend/parser/blender.h
     src/frontend/parser/parse.cc
     src/frontend/parser/parse.h
 
@@ -119,6 +121,7 @@ add_library(vela_parser STATIC
     src/frontend/syntax/syntax_node_concrete.h
     src/frontend/syntax/syntax_node_factory.h
     src/frontend/syntax/syntax_node_fwds.h
+    src/frontend/syntax/syntax_tree.cc
     src/frontend/syntax/syntax_tree.h
 
     src/frontend/syntax/green/green_node.h

@@ -1,6 +1,8 @@
 #ifndef VELA_GREEN_NODE_FWDS_H
 #define VELA_GREEN_NODE_FWDS_H
 
+#include <cstdint>
+
 namespace vela::parse {
 #define VELA_TRIVIA_SYNTAX_NODE_KINDS(X)       \
     X(NewlineTrivia)                           \
