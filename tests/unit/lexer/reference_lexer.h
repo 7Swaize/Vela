@@ -30,6 +30,10 @@
 //       and lexing resumes at the end of the malformed operator block.
 //       "->" is Arrow. A lone '-' (not followed by '>') is Minus, and a lone '>' is Gt, so "- >" is
 //       Minus, SpaceTrivia, Gt and "-->" is Minus then Arrow.
+//   * "..." is DotDotDot. Matching is greedy and left to right, so "...." is DotDotDot then Dot and
+//       "....." is DotDotDot, Dot, Dot. One or two dots are Dot tokens. Dots are not part of the
+//       operator chain rule above ("...==" is DotDotDot then EqEq), and a number does not absorb them
+//       ("1..." is IntLiteral then DotDotDot).
 //   * Single-byte tokens come from VELA_SINGLE_CHAR_TOKENS.
 //   * Any other byte (':', '?', '\\' outside a string, NUL, bytes >= 0x80, ...)
 //       is a one-byte Error token.
@@ -218,6 +222,12 @@ namespace vela::unittests::lex {
                     emit(i, j, all_digits ? TokenKind::IntLiteral : TokenKind::Error);
                     i = j;
                 }
+                continue;
+            }
+
+            if (c == '.' && i + 2 < n && s[i + 1] == '.' && s[i + 2] == '.') {
+                emit(i, i + 3, TokenKind::DotDotDot);
+                i += 3;
                 continue;
             }
 

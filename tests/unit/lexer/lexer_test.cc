@@ -54,6 +54,13 @@ namespace {
         "while_ if_ _if if1 iff Fn fn_ _fn0",
         "0 00 007 123456789 1.0 0.0 10.01 1_000",
         "a.b.c.d[e](f)",
+        // Pack
+        "...",
+        "....",
+        "..",
+        "f(xs...); g(a, ...); a...b; a..b; a.b.",
+        "1... 1.5... 1..2 1.2.3...",
+        "...->x; x->...; ...==y; \"...\" // ...",
         "\"multi\nline\nstring\" tail",
         // Whitespace trivia
         "   ",
@@ -356,6 +363,40 @@ TEST(ReferenceLexer, ArrowInsideStringsAndComments) {
     EXPECT_EQ(kinds(R"("->"->"->")"), (KindsVec{K::StringLiteral, K::Arrow, K::StringLiteral, K::Eof}));
 }
 
+TEST(ReferenceLexer, DotDotDot) {
+    EXPECT_EQ(inv_ref("..."), (TokenVec{{3, K::DotDotDot}, {0, K::Eof}}));
+    EXPECT_EQ(inv_ref("xs..."), (TokenVec{{2, K::Identifier}, {3, K::DotDotDot}, {0, K::Eof}}));
+    EXPECT_EQ(kinds("...x"), (KindsVec{K::DotDotDot, K::Identifier, K::Eof}));
+    EXPECT_EQ(kinds("a ... b"), (KindsVec{K::Identifier, K::SpaceTrivia, K::DotDotDot, K::SpaceTrivia, K::Identifier, K::Eof}));
+
+    EXPECT_EQ(kinds("."), (KindsVec{K::Dot, K::Eof}));
+    EXPECT_EQ(kinds(".."), (KindsVec{K::Dot, K::Dot, K::Eof}));
+    EXPECT_EQ(kinds(". . ."), (KindsVec{K::Dot, K::SpaceTrivia, K::Dot, K::SpaceTrivia, K::Dot, K::Eof}));
+    EXPECT_EQ(kinds("a..b"), (KindsVec{K::Identifier, K::Dot, K::Dot, K::Identifier, K::Eof}));
+    EXPECT_EQ(kinds("a.b"), (KindsVec{K::Identifier, K::Dot, K::Identifier, K::Eof}));
+
+    // We adhere to maximal munch
+    EXPECT_EQ(kinds("...."), (KindsVec{K::DotDotDot, K::Dot, K::Eof}));
+    EXPECT_EQ(kinds("....."), (KindsVec{K::DotDotDot, K::Dot, K::Dot, K::Eof}));
+    EXPECT_EQ(kinds("......"), (KindsVec{K::DotDotDot, K::DotDotDot, K::Eof}));
+    EXPECT_EQ(inv_ref("...."), (TokenVec{{3, K::DotDotDot}, {1, K::Dot}, {0, K::Eof}}));
+
+    EXPECT_EQ(kinds("1..."), (KindsVec{K::IntLiteral, K::DotDotDot, K::Eof}));
+    EXPECT_EQ(kinds("1.5..."), (KindsVec{K::FloatLiteral, K::DotDotDot, K::Eof}));
+    EXPECT_EQ(kinds("1..2"), (KindsVec{K::IntLiteral, K::Dot, K::Dot, K::IntLiteral, K::Eof}));
+    EXPECT_EQ(kinds("...5"), (KindsVec{K::DotDotDot, K::IntLiteral, K::Eof}));
+
+    EXPECT_EQ(kinds("...=="), (KindsVec{K::DotDotDot, K::EqEq, K::Eof}));
+    EXPECT_EQ(kinds("==..."), (KindsVec{K::EqEq, K::DotDotDot, K::Eof}));
+    EXPECT_EQ(kinds("...->"), (KindsVec{K::DotDotDot, K::Arrow, K::Eof}));
+    EXPECT_EQ(kinds("->..."), (KindsVec{K::Arrow, K::DotDotDot, K::Eof}));
+
+    EXPECT_EQ(kinds(R"("...")"), (KindsVec{K::StringLiteral, K::Eof}));
+    EXPECT_EQ(kinds("// ..."), (KindsVec{K::CommentTrivia, K::Eof}));
+    EXPECT_EQ(kinds("/* ... */"), (KindsVec{K::MultilineCommentTrivia, K::Eof}));
+    EXPECT_EQ(kinds("..//.\n."), (KindsVec{K::Dot, K::Dot, K::CommentTrivia, K::NewlineTrivia, K::Dot, K::Eof}));
+}
+
 TEST(ReferenceLexer, SingleCharTokens) {
 #define X(ch, kind) EXPECT_EQ(inv_ref(std::string(1, ch)), (TokenVec{{1, K::kind}, {0, K::Eof}})) << ch;
     VELA_SINGLE_CHAR_TOKENS(X)
@@ -489,6 +530,18 @@ TEST(Differential, Base) {
     for (const std::string_view view : kDifferentialTestCases) {
         EXPECT_TRUE(same_as_reference(view));
     }
+}
+
+// Incase I forget to update gperf table again
+TEST(Differential, EveryKeyword) {
+#define X(name, str)                                                                     \
+    if (std::string_view(#name).starts_with("Kw")) {                                     \
+        EXPECT_TRUE(same_as_reference(str)) << str;                                      \
+        EXPECT_TRUE(same_as_reference(std::string(str) + "x")) << str;                   \
+        EXPECT_TRUE(same_as_reference(std::string("_") + str)) << str;                   \
+    }
+    VELA_CORE_TOKEN_KINDS(X)
+#undef X
 }
 
 TEST(Differential, SlidAcrossBlockBoundaries) {

@@ -1,5 +1,5 @@
-/* C++ code produced by gperf version 3.0.1 */
-/* Command-line: 'C:\\Program Files (x86)\\GnuWin32\\bin\\gperf.exe' '.\\gperf\\vela_keywords.gperf'  */
+/* C++ code produced by gperf version 3.0.3 */
+/* Command-line: /Library/Developer/CommandLineTools/usr/bin/gperf gperf/vela_keywords.gperf  */
 /* Computed positions: -k'1,4' */
 
 #if !((' ' == 32) && ('!' == 33) && ('"' == 34) && ('#' == 35) \
@@ -29,6 +29,9 @@
 #error "gperf generated tables don't work with this execution character set. Please report a bug to <bug-gnu-gperf@gnu.org>."
 #endif
 
+#line 1 "gperf/vela_keywords.gperf"
+
+#include <cstddef>
 #include <cstring>
 #include "token.h"
 
@@ -45,122 +48,150 @@
 #endif
 
 namespace vela::lex {
-    struct PerfectKeywordHashTableEntry {
-        const char *name;
-        TokenKind kind;
+
+#line 31 "gperf/vela_keywords.gperf"
+struct PerfectKeywordHashTableEntry { const char* name; TokenKind kind; };
+/* maximum key range = 28, duplicates = 0 */
+
+class VelaKeywords
+{
+private:
+  static inline unsigned int hash (const char *str, unsigned int len);
+public:
+  static const struct PerfectKeywordHashTableEntry *lookup (const char *str, unsigned int len);
+};
+
+inline unsigned int
+VelaKeywords::hash (register const char *str, register unsigned int len)
+{
+  static const unsigned char asso_values[] =
+    {
+      30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
+      30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
+      30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
+      30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
+      30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
+      30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
+      30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
+      30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
+      30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
+      30, 30, 30, 30, 30, 30, 30, 10, 20,  0,
+      10,  5,  5, 30, 30,  0, 30, 30,  5, 30,
+      10, 30, 10, 30,  5,  0,  0,  5, 10,  5,
+      30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
+      30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
+      30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
+      30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
+      30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
+      30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
+      30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
+      30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
+      30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
+      30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
+      30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
+      30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
+      30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
+      30, 30, 30, 30, 30, 30
+    };
+  register unsigned int hval = len;
+
+  switch (hval)
+    {
+      default:
+        hval += asso_values[(unsigned char)str[3]];
+      /*FALLTHROUGH*/
+      case 3:
+      case 2:
+      case 1:
+        hval += asso_values[(unsigned char)str[0]];
+        break;
+    }
+  return hval;
+}
+
+const struct PerfectKeywordHashTableEntry *
+VelaKeywords::lookup (register const char *str, register unsigned int len)
+{
+  enum
+    {
+      TOTAL_KEYWORDS = 19,
+      MIN_WORD_LENGTH = 2,
+      MAX_WORD_LENGTH = 8,
+      MIN_HASH_VALUE = 2,
+      MAX_HASH_VALUE = 29
     };
 
-    /* maximum key range = 28, duplicates = 0 */
-
-    class VelaKeywords {
-    private:
-        static inline unsigned int hash(const char *str, unsigned int len);
-
-    public:
-        static const struct PerfectKeywordHashTableEntry *lookup(const char *str, unsigned int len);
+  static const unsigned char lengthtable[] =
+    {
+       0,  0,  2,  3,  4,  5,  6,  2,  3,  4,  5,  6,  0,  3,
+       4,  5,  6,  0,  8,  4,  5,  0,  0,  0,  4,  0,  0,  0,
+       0,  4
+    };
+  static const struct PerfectKeywordHashTableEntry wordlist[] =
+    {
+      {""}, {""},
+#line 38 "gperf/vela_keywords.gperf"
+      {"if", TokenKind::KwIf},
+#line 49 "gperf/vela_keywords.gperf"
+      {"int", TokenKind::KwInt},
+#line 46 "gperf/vela_keywords.gperf"
+      {"this", TokenKind::KwThis},
+#line 36 "gperf/vela_keywords.gperf"
+      {"class", TokenKind::KwClass},
+#line 52 "gperf/vela_keywords.gperf"
+      {"string", TokenKind::KwString},
+#line 37 "gperf/vela_keywords.gperf"
+      {"fn", TokenKind::KwFn},
+#line 40 "gperf/vela_keywords.gperf"
+      {"for", TokenKind::KwFor},
+#line 43 "gperf/vela_keywords.gperf"
+      {"true", TokenKind::KwTrue},
+#line 44 "gperf/vela_keywords.gperf"
+      {"false", TokenKind::KwFalse},
+#line 35 "gperf/vela_keywords.gperf"
+      {"struct", TokenKind::KwStruct},
+      {""},
+#line 47 "gperf/vela_keywords.gperf"
+      {"new", TokenKind::KwNew},
+#line 39 "gperf/vela_keywords.gperf"
+      {"else", TokenKind::KwElse},
+#line 41 "gperf/vela_keywords.gperf"
+      {"while", TokenKind::KwWhile},
+#line 42 "gperf/vela_keywords.gperf"
+      {"return", TokenKind::KwReturn},
+      {""},
+#line 34 "gperf/vela_keywords.gperf"
+      {"comptime", TokenKind::KwComptime},
+#line 45 "gperf/vela_keywords.gperf"
+      {"null", TokenKind::KwNull},
+#line 50 "gperf/vela_keywords.gperf"
+      {"float", TokenKind::KwFloat},
+      {""}, {""}, {""},
+#line 48 "gperf/vela_keywords.gperf"
+      {"void", TokenKind::KwVoid},
+      {""}, {""}, {""}, {""},
+#line 51 "gperf/vela_keywords.gperf"
+      {"bool", TokenKind::KwBool}
     };
 
-    inline unsigned int
-    VelaKeywords::hash(const char *str, const unsigned int len) {
-        static const unsigned char asso_values[] =
-        {
-            30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
-            30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
-            30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
-            30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
-            30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
-            30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
-            30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
-            30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
-            30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
-            30, 30, 30, 30, 30, 30, 30, 10, 20, 0,
-            10, 5, 5, 30, 30, 0, 30, 30, 5, 30,
-            10, 30, 30, 30, 5, 0, 0, 5, 10, 5,
-            30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
-            30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
-            30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
-            30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
-            30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
-            30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
-            30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
-            30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
-            30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
-            30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
-            30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
-            30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
-            30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
-            30, 30, 30, 30, 30, 30
-        };
-        int hval = len;
+  if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH)
+    {
+      unsigned int key = hash (str, len);
 
-        switch (hval) {
-            default:
-                hval += asso_values[static_cast<unsigned char>(str[3])];
-            /*FALLTHROUGH*/
-            case 3:
-            case 2:
-            case 1:
-                hval += asso_values[static_cast<unsigned char>(str[0])];
-                break;
-        }
-        return hval;
+      if (key <= MAX_HASH_VALUE)
+        if (len == lengthtable[key])
+          {
+            register const char *s = wordlist[key].name;
+
+            if (*str == *s && !memcmp (str + 1, s + 1, len - 1))
+              return &wordlist[key];
+          }
     }
+  return 0;
+}
+#line 53 "gperf/vela_keywords.gperf"
 
-    inline const struct PerfectKeywordHashTableEntry *VelaKeywords::lookup(const char *str, const unsigned int len) {
-        enum {
-            TOTAL_KEYWORDS = 18,
-            MIN_WORD_LENGTH = 2,
-            MAX_WORD_LENGTH = 6,
-            MIN_HASH_VALUE = 2,
-            MAX_HASH_VALUE = 29
-        };
 
-        static const unsigned char lengthtable[] =
-        {
-            0, 0, 2, 3, 4, 5, 6, 2, 3, 4, 5, 6, 0, 3,
-            4, 5, 6, 0, 0, 4, 5, 0, 0, 0, 4, 0, 0, 0,
-            0, 4
-        };
-        static const struct PerfectKeywordHashTableEntry wordlist[] =
-        {
-            {.name = ""}, {.name = ""},
-            {.name = "if", .kind = TokenKind::KwIf},
-            {.name = "int", .kind = TokenKind::KwInt},
-            {.name = "this", .kind = TokenKind::KwThis},
-            {.name = "class", .kind = TokenKind::KwClass},
-            {.name = "string", .kind = TokenKind::KwString},
-            {.name = "fn", .kind = TokenKind::KwFn},
-            {.name = "for", .kind = TokenKind::KwFor},
-            {.name = "true", .kind = TokenKind::KwTrue},
-            {.name = "false", .kind = TokenKind::KwFalse},
-            {.name = "struct", .kind = TokenKind::KwStruct},
-            {.name = ""},
-            {.name = "new", .kind = TokenKind::KwNew},
-            {.name = "else", .kind = TokenKind::KwElse},
-            {.name = "while", .kind = TokenKind::KwWhile},
-            {.name = "return", .kind = TokenKind::KwReturn},
-            {.name = ""}, {.name = ""},
-            {.name = "null", .kind = TokenKind::KwNull},
-            {.name = "float", .kind = TokenKind::KwFloat},
-            {.name = ""}, {.name = ""}, {.name = ""},
-            {.name = "void", .kind = TokenKind::KwVoid},
-            {.name = ""}, {.name = ""}, {.name = ""}, {.name = ""},
-            {.name = "bool", .kind = TokenKind::KwBool}
-        };
-
-        if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH) {
-            int key = hash(str, len);
-
-            if (key <= MAX_HASH_VALUE && key >= 0)
-                if (len == lengthtable[key]) {
-                    const char *s = wordlist[key].name;
-
-                    if (*str == *s && !memcmp(str + 1, s + 1, len - 1))
-                        return &wordlist[key];
-                }
-        }
-        return nullptr;
-    }
 }
 
 #if defined(__clang__)
