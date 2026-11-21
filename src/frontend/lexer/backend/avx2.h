@@ -106,9 +106,10 @@ namespace vela::lex::avx2 {
 
         // Two character operators
         uint32_t c_eq = eq(in, '='), c_lt = eq(in, '<'), c_gt = eq(in, '>'), c_ex = eq(in, '!');
-        uint32_t c_am = eq(in, '&'), c_pi = eq(in, '|');
-        uint32_t n_eq = eq(next, '='), n_lt = eq(next, '<'), n_gt = eq(next, '>'), n_am = eq(next, '&'), n_pi = eq(next, '|');
-        uint32_t pair = ((c_eq | c_lt | c_gt | c_ex) & n_eq) | (c_am & n_am) | (c_pi & n_pi) | (c_lt & n_lt) | (c_gt & n_gt);
+        uint32_t c_am = eq(in, '&'), c_pi = eq(in, '|'), c_ds = eq(in, '-');
+        uint32_t n_eq = eq(next, '='), n_lt = eq(next, '<'), n_gt = eq(next, '>');
+        uint32_t n_am = eq(next, '&'), n_pi = eq(next, '|');
+        uint32_t pair = ((c_eq | c_lt | c_gt | c_ex) & n_eq) | (c_am & n_am) | (c_pi & n_pi) | (c_lt & n_lt) | (c_gt & n_gt) | (c_ds & n_gt);
         pair &= punct;
 
         uint32_t second = (pair << 1) | state.pair_carry;

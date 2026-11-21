@@ -24,10 +24,12 @@
 //       - anything else ("12ab", "1.5x")  -> Error spanning the whole word
 //   * String: '"' ... '"'. A backslash inside a string escapes the next byte.
 //       Newlines are allowed. Unterminated -> Error from the opening quote to EOF.
-//   * Two-byte operators: == != <= >= << >> && ||
+//   * Two-byte operators: == != <= >= << >> && || ->
 //       If an operator is immediately followed by another operator
-//       (e.g. "===", "<<<", "&&&"), the entire byte sequence is an error,
+//       (e.g. "===", "<<<", "&&&", "->>", "->="), the entire byte sequence is an error,
 //       and lexing resumes at the end of the malformed operator block.
+//       "->" is Arrow. A lone '-' (not followed by '>') is Minus, and a lone '>' is Gt, so "- >" is
+//       Minus, SpaceTrivia, Gt and "-->" is Minus then Arrow.
 //   * Single-byte tokens come from VELA_SINGLE_CHAR_TOKENS.
 //   * Any other byte (':', '?', '\\' outside a string, NUL, bytes >= 0x80, ...)
 //       is a one-byte Error token.
@@ -101,7 +103,8 @@ namespace vela::unittests::lex {
                || (a == '&' && b == '&')
                || (a == '|' && b == '|')
                || (a == '<' && b == '<')
-               || (a == '>' && b == '>');
+               || (a == '>' && b == '>')
+               || (a == '-' && b == '>');
     }
 
     inline TokenKind operator_kind(const char a, const char b) {
@@ -109,6 +112,7 @@ namespace vela::unittests::lex {
         if (a == '|') return TokenKind::PipePipe;
         if (a == '=') return TokenKind::EqEq;
         if (a == '!') return TokenKind::ExclEq;
+        if (a == '-') return TokenKind::Arrow; // is_operator_pair_at guarantees b == '>'
         if (a == '<') return b == '<' ? TokenKind::LtLt : TokenKind::LtEq;
         return b == '>' ? TokenKind::GtGt : TokenKind::GtEq; // a == '>'
     }

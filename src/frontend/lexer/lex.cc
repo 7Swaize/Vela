@@ -117,22 +117,24 @@ namespace vela::lex {
         return c >= '0' && c <= '9';
     }
 
-    // Should compile to a lookup table
-    // Clang may compile to a jump table, so we should force a lookup table in that event
+    // We can exclude checking for dots because we handle that when checking for packs.
+    //
+    // Should compile to a lookup table.
+    // Clang may compile to a jump table, so we should force a lookup table in that event.
     static TokenKind classify_single_kind(const uint8_t c) {
         switch (c) {
 #define X(ch, kind)                         \
             case ch:                        \
                 return TokenKind::kind;
-                    VELA_SINGLE_CHAR_TOKENS(X)
+                    VELA_SINGLE_CHAR_TOKENS_EXCLUDING_DOT(X)
 #undef X
             default:
                 return TokenKind::Error;
         }
     }
 
-    // Should compile to a lookup table
-    // Clang may compile to a jump table, so we should force a lookup table in that event
+    // Should compile to a lookup table.
+    // Clang may compile to a jump table, so we should force a lookup table in that event.
     static TokenKind classify_pair_kind(const uint8_t a, const uint8_t b) {
         switch (a) {
             case '&':
@@ -265,12 +267,29 @@ namespace vela::lex {
         };
     }
 
+    static WrappedToken lex_dots(const uint8_t *source, const LexPos pos, const LexPos n) {
+        if (VELA_UNLIKELY(pos + 2 < n && source[pos + 1] == '.' && source[pos + 2] == '.')) {
+            return {
+                .width = 3,
+                .end = pos + 3,
+                .kind = TokenKind::DotDotDot
+            };
+        }
+
+        return {
+            .width = 1,
+            .end = pos + 1,
+            .kind = TokenKind::Dot
+        };
+    }
+
     static WrappedToken lex_token(const uint8_t *source, const LexPos n, const Stage1 &stage, const LexPos pos) {
         if (bit_set(stage.ws, pos)) return lex_ws(source, pos, n);
         if (bit_set(stage.real_quotes, pos)) return lex_string(stage, pos, n);
         if (bit_set(stage.ident, pos)) return lex_word(source, stage, pos);
         if (bit_set(stage.pair, pos)) return lex_pair(source, stage, pos);
         if (bit_set(stage.real_comment, pos)) return lex_comment(source, stage, pos, n);
+        if (source[pos] == '.') return lex_dots(source, pos, n);
 
         return {
             .width = 1,
@@ -317,6 +336,6 @@ namespace vela::lex {
 
         Stage1 stage{nBlocks};
         stage1(m_src.data(), nBlocks, stage);
-        return stage2(m_src.data(), static_cast<LexPos>(start), stage);
+        return stage2(m_src.data(), static_cast<LexPos>(m_src.rawSize()), stage);
     }
 } // namespace vela::lex

@@ -31,6 +31,7 @@ namespace {
         " ",
         "x",
         "fn main() { return 0; }",
+        "fn add(int a, int b) -> int { return a + b; }",
         "struct Point { int x; int y; }",
         "class Player { fn void move(int dx, int dy) { x = x + dx; y = y + dy; } }",
         "fn int main() { Point p = new Point { x = 1, y = 2.5 }; return p.x[1]; }",
@@ -43,8 +44,8 @@ namespace {
         "\"unterminated escape \\\"", // NOLINT(*-raw-string-literal)
         "\"trailing backslash\\",
         "x = 1.5; y = 12ab; z = 1.5x; w = 1.2.3; v = 1.;",
-        "a===b; c<<<d; e&&&f; g<<=h; i<=>j; k!==l",
-        "== != <= >= << >> && || = < > ! & |",
+        "a===b; c<<<d; e&&&f; g<<=h; i<=>j; k!==l; m->>n; o->=p",
+        "== != <= >= << >> && || -> = < > ! & |",
         "(){}[],.;+-*/%!~&|^<>=",
         "a:b?c@d#e$f`g'h\\i",
         "\xc3\xa9\xff\x80 caf\xc3\xa9",
@@ -108,7 +109,8 @@ namespace {
     }
 
     TokenVec inv_real(const std::string_view src) {
-        Lexer lexer{vela::shared::FileSourceBuffer<backend::SimdWord>::from_string(src, kBufferCreationConfig)};
+        const auto buffer = vela::shared::FileSourceBuffer<backend::SimdWord>::from_string(src, kBufferCreationConfig);
+        const Lexer lexer{buffer};
         return lexer.lex();
     }
 
@@ -271,7 +273,7 @@ TEST(ReferenceLexer, UnterminatedStrings){
 }
 
 TEST(ReferenceLexer, Operators) {
-    EXPECT_EQ(filter_non_trivia("== != <= >= << >> && ||"), (KindsVec{K::EqEq, K::ExclEq, K::LtEq, K::GtEq, K::LtLt, K::GtGt, K::AmpAmp, K::PipePipe, K::Eof}));
+    EXPECT_EQ(filter_non_trivia("== != <= >= << >> && || ->"), (KindsVec{K::EqEq, K::ExclEq, K::LtEq, K::GtEq, K::LtLt, K::GtGt, K::AmpAmp, K::PipePipe, K::Arrow, K::Eof}));
     EXPECT_EQ(kinds("a<b"), (KindsVec{K::Identifier, K::Lt, K::Identifier, K::Eof}));
     EXPECT_EQ(kinds("x=y"), (KindsVec{K::Identifier, K::Assign, K::Identifier, K::Eof}));
     EXPECT_EQ(kinds("= ="), (KindsVec{K::Assign, K::SpaceTrivia, K::Assign, K::Eof}));
@@ -287,6 +289,71 @@ TEST(ReferenceLexer, MalformedOperatorChains) {
     EXPECT_EQ(inv_ref("<<<"), (TokenVec{{3, K::Error}, {0, K::Eof}}));
     EXPECT_EQ(inv_ref("<<="), (TokenVec{{3, K::Error}, {0, K::Eof}}));
     EXPECT_EQ(inv_ref("&&&"), (TokenVec{{3, K::Error}, {0, K::Eof}}));
+
+    // Arrow participates in the same rule: "->" directly followed by another operator is malformed.
+    EXPECT_EQ(inv_ref("->>"), (TokenVec{{3, K::Error}, {0, K::Eof}}));
+    EXPECT_EQ(inv_ref("->="), (TokenVec{{3, K::Error}, {0, K::Eof}}));
+    EXPECT_EQ(inv_ref("->=="), (TokenVec{{4, K::Error}, {0, K::Eof}}));
+    EXPECT_EQ(inv_ref("->>="), (TokenVec{{4, K::Error}, {0, K::Eof}}));
+
+    // The malformed block starts at the '-' only when "->" itself starts it; a leading lone '-' is still Minus.
+    EXPECT_EQ(inv_ref("-->>"), (TokenVec{{1, K::Minus}, {3, K::Error}, {0, K::Eof}}));
+    EXPECT_EQ(inv_ref("-->="), (TokenVec{{1, K::Minus}, {3, K::Error}, {0, K::Eof}}));
+
+    // Lexing resumes after the malformed block.
+    EXPECT_EQ(kinds("->>a"), (KindsVec{K::Error, K::Identifier, K::Eof}));
+    EXPECT_EQ(kinds("->= ->"), (KindsVec{K::Error, K::SpaceTrivia, K::Arrow, K::Eof}));
+}
+
+TEST(ReferenceLexer, Arrow) {
+    EXPECT_EQ(inv_ref("->"), (TokenVec{{2, K::Arrow}, {0, K::Eof}}));
+    EXPECT_EQ(inv_ref("-> "), (TokenVec{{2, K::Arrow}, {1, K::SpaceTrivia}, {0, K::Eof}}));
+    EXPECT_EQ(inv_ref("a->b"), (TokenVec{{1, K::Identifier}, {2, K::Arrow}, {1, K::Identifier}, {0, K::Eof}}));
+    EXPECT_EQ(kinds("a -> b"), (KindsVec{K::Identifier, K::SpaceTrivia, K::Arrow, K::SpaceTrivia, K::Identifier, K::Eof}));
+    EXPECT_EQ(kinds("1->2"), (KindsVec{K::IntLiteral, K::Arrow, K::IntLiteral, K::Eof}));
+    EXPECT_EQ(kinds("1.5->x"), (KindsVec{K::FloatLiteral, K::Arrow, K::Identifier, K::Eof}));
+
+    // Back to back arrows are two tokens.
+    EXPECT_EQ(kinds("->->"), (KindsVec{K::Arrow, K::Arrow, K::Eof}));
+    EXPECT_EQ(kinds("-> ->"), (KindsVec{K::Arrow, K::SpaceTrivia, K::Arrow, K::Eof}));
+
+    // '-' and '>' only form an arrow when adjacent.
+    EXPECT_EQ(kinds("-"), (KindsVec{K::Minus, K::Eof}));
+    EXPECT_EQ(kinds(">"), (KindsVec{K::Gt, K::Eof}));
+    EXPECT_EQ(kinds("- >"), (KindsVec{K::Minus, K::SpaceTrivia, K::Gt, K::Eof}));
+    EXPECT_EQ(kinds("-\t>"), (KindsVec{K::Minus, K::TabTrivia, K::Gt, K::Eof}));
+    EXPECT_EQ(kinds("-\n>"), (KindsVec{K::Minus, K::NewlineTrivia, K::Gt, K::Eof}));
+    EXPECT_EQ(kinds("-/**/>"), (KindsVec{K::Minus, K::MultilineCommentTrivia, K::Gt, K::Eof}));
+    EXPECT_EQ(kinds("-//c\n>"), (KindsVec{K::Minus, K::CommentTrivia, K::NewlineTrivia, K::Gt, K::Eof}));
+
+    // A leading '-' that is not part of an arrow stays a Minus, the arrow is the last two bytes.
+    EXPECT_EQ(kinds("-->"), (KindsVec{K::Minus, K::Arrow, K::Eof}));
+    EXPECT_EQ(kinds("--->"), (KindsVec{K::Minus, K::Minus, K::Arrow, K::Eof}));
+
+    // Neighbouring operators.
+    EXPECT_EQ(kinds(">->"), (KindsVec{K::Gt, K::Arrow, K::Eof}));
+    EXPECT_EQ(kinds("<->"), (KindsVec{K::Lt, K::Arrow, K::Eof}));
+    EXPECT_EQ(kinds("&&->"), (KindsVec{K::AmpAmp, K::Arrow, K::Eof}));
+    EXPECT_EQ(kinds("->&&"), (KindsVec{K::Arrow, K::AmpAmp, K::Eof}));
+    EXPECT_EQ(kinds("==->"), (KindsVec{K::EqEq, K::Arrow, K::Eof}));
+    EXPECT_EQ(kinds("<=->"), (KindsVec{K::LtEq, K::Arrow, K::Eof}));
+    EXPECT_EQ(kinds(">>->"), (KindsVec{K::GtGt, K::Arrow, K::Eof}));
+    EXPECT_EQ(kinds("->!x"), (KindsVec{K::Arrow, K::Excl, K::Identifier, K::Eof}));
+
+    EXPECT_EQ(filter_non_trivia("fn add(int a, int b) -> int { }"),
+              (KindsVec{K::KwFn, K::Identifier, K::LParen, K::KwInt, K::Identifier, K::Comma, K::KwInt, K::Identifier, K::RParen,
+                        K::Arrow, K::KwInt, K::LBrace, K::RBrace, K::Eof}));
+}
+
+TEST(ReferenceLexer, ArrowInsideStringsAndComments) {
+    // Arrow is just content inside string; its not an operator.
+    EXPECT_EQ(kinds(R"("->")"), (KindsVec{K::StringLiteral, K::Eof}));
+    EXPECT_EQ(kinds(R"("a -> b")"), (KindsVec{K::StringLiteral, K::Eof}));
+    EXPECT_EQ(kinds("// ->"), (KindsVec{K::CommentTrivia, K::Eof}));
+    EXPECT_EQ(kinds("/* -> */"), (KindsVec{K::MultilineCommentTrivia, K::Eof}));
+    EXPECT_EQ(kinds("// ->\n->"), (KindsVec{K::CommentTrivia, K::NewlineTrivia, K::Arrow, K::Eof}));
+    EXPECT_EQ(kinds("/* -> */->"), (KindsVec{K::MultilineCommentTrivia, K::Arrow, K::Eof}));
+    EXPECT_EQ(kinds(R"("->"->"->")"), (KindsVec{K::StringLiteral, K::Arrow, K::StringLiteral, K::Eof}));
 }
 
 TEST(ReferenceLexer, SingleCharTokens) {
@@ -477,30 +544,3 @@ TEST(Differential, UnterminatedBlockCommentAtEveryAlignment) {
         ASSERT_TRUE(same_as_reference(pad + "// x")) << "shift=" << shift;
     }
 }
-
-// We can address this later
-/*
-TEST(Differential, ExhaustiveShortOverOperatorAlphabet) {
-    constexpr static std::string_view kAlphabet = "=<>!&|\"\\a1. ;";
-    constexpr static int kMaxLen = 5;
-
-    std::string src;
-    auto recurse = [&](auto &&self, const int depth) -> void {
-        ASSERT_TRUE(same_as_reference(src));
-        if (depth == kMaxLen) {
-            return;
-        }
-
-        for (const char c : kAlphabet) {
-            src.push_back(c);
-            self(self, depth + 1);
-            src.pop_back();
-
-            if (::testing::Test::HasFailure()) {
-                return;
-            }
-        }
-    };
-    recurse(recurse, 0);
-}
-*/

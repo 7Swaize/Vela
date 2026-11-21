@@ -72,35 +72,39 @@ namespace vela::lex {
     X(LtLt, "<<")                 \
     X(GtGt, ">>")                 \
     X(DotDotDot, "...")           \
-    X(Arrow, "->")                \
+    X(Arrow, "->")
 
-#define VELA_SINGLE_CHAR_TOKENS(X) \
-    X('(', LParen)                 \
-    X(')', RParen)                 \
-    X('{', LBrace)                 \
-    X('}', RBrace)                 \
-    X('[', LBracket)               \
-    X(']', RBracket)               \
-    X(',', Comma)                  \
-    X('.', Dot)                    \
-    X(';', Semicolon)              \
-    X('+', Plus)                   \
-    X('-', Minus)                  \
-    X('*', Star)                   \
-    X('/', Slash)                  \
-    X('%', Percent)                \
-    X('!', Excl)                   \
-    X('~', Tilde)                  \
-    X('&', Amp)                    \
-    X('|', Pipe)                   \
-    X('^', Caret)                  \
-    X('<', Lt)                     \
-    X('>', Gt)                     \
+#define VELA_SINGLE_CHAR_TOKENS_EXCLUDING_DOT(X) \
+    X('(', LParen)                               \
+    X(')', RParen)                               \
+    X('{', LBrace)                               \
+    X('}', RBrace)                               \
+    X('[', LBracket)                             \
+    X(']', RBracket)                             \
+    X(',', Comma)                                \
+    X(';', Semicolon)                            \
+    X('+', Plus)                                 \
+    X('-', Minus)                                \
+    X('*', Star)                                 \
+    X('/', Slash)                                \
+    X('%', Percent)                              \
+    X('!', Excl)                                 \
+    X('~', Tilde)                                \
+    X('&', Amp)                                  \
+    X('|', Pipe)                                 \
+    X('^', Caret)                                \
+    X('<', Lt)                                   \
+    X('>', Gt)                                   \
     X('=', Assign)
+
+
+#define VELA_SINGLE_CHAR_TOKENS(X)              \
+    VELA_SINGLE_CHAR_TOKENS_EXCLUDING_DOT(X)    \
+    X('.', Dot)
 
 #define VELA_TOKEN_KINDS(X)     \
     VELA_TRIVIA_TOKEN_KINDS(X)  \
-    VELA_CORE_TOKEN_KINDS(X)    \
+    VELA_CORE_TOKEN_KINDS(X)
 
 #define VELA_LEX_ERROR_KINDS(X)                  \
     X(InvalidCharacter, "invalid character")     \
