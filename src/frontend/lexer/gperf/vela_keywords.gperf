@@ -31,6 +31,7 @@ namespace vela::lex {
 struct PerfectKeywordHashTableEntry { const char* name; TokenKind kind; };
 
 %%
+comptime, TokenKind::KwComptime
 struct, TokenKind::KwStruct
 class, TokenKind::KwClass
 fn, TokenKind::KwFn

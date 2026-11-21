@@ -72,6 +72,7 @@ namespace vela::lex {
     X(LtLt, "<<")                 \
     X(GtGt, ">>")                 \
     X(DotDotDot, "...")           \
+    X(Arrow, "->")                \
 
 #define VELA_SINGLE_CHAR_TOKENS(X) \
     X('(', LParen)                 \

@@ -32,6 +32,7 @@ namespace vela::parse {
             return shared::Range { .start = m_position, .end =  m_position + m_green->fullWidth() };
         }
 
+        bool containsDiagnostics() const { return m_green->containsDiagnostics(); }
         std::span<Diagnostic *> diagnostics() const { return m_green->diagnostics(); }
 
         // clang-format off

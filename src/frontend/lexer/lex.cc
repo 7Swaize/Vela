@@ -147,6 +147,8 @@ namespace vela::lex {
                 return b == '<' ? TokenKind::LtLt : TokenKind::LtEq;
             case '>':
                 return b == '>' ? TokenKind::GtGt : TokenKind::GtEq;
+            case '-':
+                return TokenKind::Arrow;
             default:
                 return TokenKind::Error;
         }

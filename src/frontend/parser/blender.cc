@@ -210,6 +210,14 @@ namespace vela::parse {
     }
 
     bool Blender::Reader::canReuse(const SyntaxElement *element) const {
+        // The only non-error or valid-for-reuse 0-width token that exists is the EofToken.
+        if (element->fullWidth() == 0) {
+            return false;
+        }
 
+        // Obviously, if it intersects a change we cannot use it.
+        if (intersectsCurrentChange(element)) {
+            return false;
+        }
     }
 } // namespace vela::parse
