@@ -4,15 +4,22 @@
 #include "green/green_node_fwds.h"
 
 namespace vela::parse {
+    class SyntaxElement;
     class SyntaxNode;
     class SyntaxToken;
-    class SyntaxTrivia;
+    struct SyntaxTrivia;
     class SyntaxTriviaList;
+
+    template <typename T>
+    concept RequiresSyntaxElement = std::derived_from<T, SyntaxElement>;
+
+    template <typename T>
+    concept RequiresSyntaxNode = std::derived_from<T, SyntaxNode>;
 
     class ListSyntax;
     class SeparatedListSyntax;
-    template <typename T> class SyntaxList;
-    template <typename T> class SeparatedSyntaxList;
+    template <RequiresSyntaxElement T> class SyntaxList;
+    template <RequiresSyntaxElement T> class SeparatedSyntaxList;
 
     class MemberDeclarationSyntax;
     class TypeDeclarationSyntax;

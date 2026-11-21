@@ -110,8 +110,8 @@ namespace vela::parse {
     VELA_NONTERMINAL_SYNTAX_NODE_KINDS(X)      \
     VELA_LIST_SYNTAX_NODE_KINDS(X)             \
 
-    enum class NodeKind : std::uint16_t;
-    using NodePos = std::uint32_t;
+    enum class NodeKind : uint16_t;
+    using NodePos = uint32_t;
 
     class GreenNode;
     class GreenTrivia;

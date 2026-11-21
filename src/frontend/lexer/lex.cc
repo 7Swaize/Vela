@@ -1,4 +1,3 @@
-// ReSharper disable CppLocalVariableMayBeConst
 // ReSharper disable CppRedundantParentheses
 #include <bit>
 #include <limits>
@@ -301,11 +300,21 @@ namespace vela::lex {
         return tokens;
     }
 
-    std::vector<Token> Lexer::lex(const shared::FileSourceBuffer<backend::SimdWord>& src) {
-        const auto nBlocks = static_cast<LexPos>(src.alignedSize() / sizeof(backend::SimdWord));
+    std::vector<Token> Lexer::lex() const {
+        const auto nBlocks = static_cast<LexPos>(m_src.alignedSize() / sizeof(backend::SimdWord));
 
         Stage1 stage{nBlocks};
-        stage1(src.data(), nBlocks, stage);
-        return stage2(src.data(), static_cast<LexPos>(src.rawSize()), stage);
+        stage1(m_src.data(), nBlocks, stage);
+        return stage2(m_src.data(), static_cast<LexPos>(m_src.rawSize()), stage);
+    }
+
+    std::vector<Token> Lexer::lex_subset(const lex::LexPos start, const lex::LexPos end) const {
+        shared::FileSourceBuffer<backend::SimdWord> subset =
+            shared::FileSourceBuffer<backend::SimdWord>::from_subset(m_src, start, end);
+        const auto nBlocks = static_cast<LexPos>(m_src.alignedSize() / sizeof(backend::SimdWord));
+
+        Stage1 stage{nBlocks};
+        stage1(m_src.data(), nBlocks, stage);
+        return stage2(m_src.data(), static_cast<LexPos>(start), stage);
     }
 } // namespace vela::lex

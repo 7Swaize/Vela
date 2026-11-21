@@ -106,6 +106,17 @@ namespace vela::shared {
             return {p, n};
         }
 
+        template <typename T> requires std::is_trivially_destructible_v<T>
+        [[nodiscard]] std::span<T> make_array_fill(const std::size_t n, const T &value) {
+            if (n == 0) {
+                return {};
+            }
+
+            T *p = static_cast<T *>(alloc(n * sizeof(T), alignof(T)));
+            std::uninitialized_fill_n(p, n, value);
+            return {p, n};
+        }
+
     private:
         struct Dtor {
             void (*destroy)(void *);
@@ -127,7 +138,7 @@ namespace vela::shared {
                 return nullptr;
             }
 
-            std::byte *ret = m_cur;
+            std::byte *ret = m_cur + pad;
             m_cur += pad + size;
             return ret;
         }

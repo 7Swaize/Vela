@@ -10,7 +10,13 @@
 namespace vela::lex {
     class Lexer {
     public:
-        std::vector<Token> lex(const shared::FileSourceBuffer<backend::SimdWord>& src);
+        explicit Lexer(const shared::FileSourceBuffer<backend::SimdWord> &src) : m_src(src) { }
+
+        std::vector<Token> lex() const;
+        std::vector<Token> lex_subset(lex::LexPos start, lex::LexPos end) const;
+
+    private:
+        const shared::FileSourceBuffer<backend::SimdWord>& m_src;
     };
 } // namespace vela::lex
 

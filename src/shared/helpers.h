@@ -51,13 +51,63 @@ namespace vela::shared {
     std::size_t collection_size_or_zero(const std::optional<T> &value) {
         return value.has_value() ? value->size() : 0;
     }
-    // clang-format on
 
-    template <std::totally_ordered T>
+    // https://www.cppstories.com/2019/02/2lines3featuresoverload.html/
+    template <typename... Ts>
+    struct overload : Ts... { using Ts::operator()...; };
+
+    template <typename T>
+    concept RangeValue = std::totally_ordered<T> && requires(T a, T b) {
+        { a + b} -> std::convertible_to<T>;
+        { a - b} -> std::convertible_to<T>;
+    };
+
+    template <RangeValue T>
     struct Range {
         T start; // inclusive
         T end; // exclusive
+
+        constexpr T length() const noexcept {
+            return end - start;
+        }
+
+        constexpr bool contains(const T& value) const noexcept {
+            return start <= value && value < end;
+        }
+
+        constexpr bool contains(const Range& other) const noexcept {
+            return start <= other.start && other.end <= end;
+        }
+
+        constexpr bool intersects(const Range& other) const noexcept {
+            return start < other.end && other.start < end;
+        }
+
+        constexpr bool empty() const noexcept {
+            return start == end;
+        }
+
+        constexpr Range operator+(const T& offset) const noexcept {
+            return { start + offset, end + offset };
+        }
+
+        constexpr Range operator-(const T& offset) const noexcept {
+            return { start - offset, end - offset };
+        }
+
+        constexpr Range& operator+=(const T& offset) noexcept {
+            start += offset;
+            end += offset;
+            return *this;
+        }
+
+        constexpr Range& operator-=(const T& offset) noexcept {
+            start -= offset;
+            end -= offset;
+            return *this;
+        }
     };
+    // clang-format on
 } // namespace vela::shared
 
 #endif // VELA_HELPERS_H

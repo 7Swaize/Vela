@@ -8,6 +8,8 @@
 struct Position {
     uint32_t line;
     uint32_t character;
+
+    auto operator<=>(const Position&) const = default;
 };
 
 struct Diagnostic {

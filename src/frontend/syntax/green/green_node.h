@@ -1,13 +1,16 @@
 #ifndef VELA_GREEN_NODE_H
 #define VELA_GREEN_NODE_H
 
+#include <algorithm>
+#include <cassert>
+#include <span>
 #include <string_view>
 #include <unordered_map>
-#include <span>
 #include <vector>
 
 #include "green_node_fwds.h"
 #include "frontend/diagnostic.h"
+#include "shared/preprocessor.h"
 
 namespace vela::parse {
     enum class NodeKind : uint16_t {
@@ -53,14 +56,34 @@ namespace vela::parse {
             }
         }
 
-        virtual const GreenNode *getSlot(int index) const = 0;
+        virtual const GreenNode *slot(int index) const = 0;
         virtual NodeKind underlyingKind() const { return NodeKind::UndefinedSyntax; }
 
-        uint16_t slotCount() const { return m_data.slotCount(); }
+        int slotCount() const {
+            // It is highly unlikely we have a node with more than 4096 slots.
+            if (VELA_UNLIKELY(m_data.slotCount() == SlotCountOverflow)) {
+                return slotCountSlow();
+            }
+
+            return m_data.slotCount();
+        }
 
         NodeKind kind() const { return m_kind; }
-        virtual bool isToken() const { return false; }
-        virtual bool isTrivia() const { return false; }
+
+        // This allows us to avoid the virtual call on this method.
+        // However, this relies on the fact that every type of token is contained within the macro 'VELA_TERMINAL_SYNTAX_NODE_KINDS'.
+        // If not, a singular check like this is not valid, and we would have to disjointly check the other range of tokens.
+        bool isToken() const {
+            return m_kind >= NodeKind::EofToken && m_kind <= NodeKind::MissingToken;
+        }
+        bool isNode() const { return !isToken(); }
+
+        // This allows us to avoid the virtual call on this method.
+        // However, this relies on the fact that every type of trivia is contained within the macro 'VELA_TRIVIA_SYNTAX_NODE_KINDS'.
+        // If not, a singular check like this is not valid, and we would have to disjointly check the other range of trivia.
+        bool isTrivia() const {
+            return m_kind >= NodeKind::NewlineTrivia && m_kind <= NodeKind::UnexpectedToken;
+        }
 
         NodeFlags flags() const { return m_data.flags(); }
         bool hasFlag(NodeFlags flag) const { return static_cast<int>(m_data.flags() & flag); }
@@ -83,14 +106,14 @@ namespace vela::parse {
 
             do {
                 const GreenNode *first = nullptr;
-                for (int i = 0; i < node->m_data.slotCount(); ++i) {
-                    first = node->getSlot(i);
+                for (int i = 0; i < node->slotCount(); ++i) {
+                    first = node->slot(i);
                     if (first != nullptr) {
                         break;
                     }
                 }
                 node = first;
-            } while (node && node->m_data.slotCount() > 0);
+            } while (node && node->slotCount() > 0);
 
             return node;
         }
@@ -100,14 +123,14 @@ namespace vela::parse {
 
             do {
                 const GreenNode *first = nullptr;
-                for (int i = node->m_data.slotCount() - 1; i >= 0; --i) {
-                    first = node->getSlot(i);
+                for (int i = node->slotCount() - 1; i >= 0; --i) {
+                    first = node->slot(i);
                     if (first != nullptr) {
                         break;
                     }
                 }
                 node = first;
-            } while (node && node->m_data.slotCount() > 0);
+            } while (node && node->slotCount() > 0);
 
             return node;
         }
@@ -115,7 +138,7 @@ namespace vela::parse {
         virtual int getSlotOffset(int idx) const {
             int offset = 0;
             for (int i = 0; i < idx; ++i) {
-                if (const GreenNode *child = getSlot(i); child != nullptr) {
+                if (const GreenNode *child = slot(i); child != nullptr) {
                     offset += child->m_fullWidth;
                 }
             }
@@ -143,8 +166,12 @@ namespace vela::parse {
             }
         }
 
+        virtual int slotCountSlow() const { assert(false && "the implementation should override if this is called"); }
+
         void setFlags(NodeFlags flags) { m_data.setFlags(flags); }
-        void setSlotCount(int n) { m_data.setSlotCount(static_cast<uint16_t>(n)); }
+        void setSlotCount(int n) {
+            m_data.setSlotCount(static_cast<uint16_t>(std::min<int>(n, SlotCountOverflow)));
+        }
         void setFullWidth(NodePos width) { m_fullWidth = width; }
 
         void adjustFlagsAndWidth(const GreenNode *node) {
@@ -154,6 +181,8 @@ namespace vela::parse {
 
         inline static std::unordered_map<const GreenNode *, std::vector<Diagnostic *>> m_diagnosticsTable;
         inline static std::vector<Diagnostic *> emptyDiagnosticsBuf = {};
+
+        constexpr static uint16_t SlotCountOverflow = 0b0000111111111111;
 
     private:
         struct NodeDataPacked {
@@ -194,11 +223,10 @@ namespace vela::parse {
             setFullWidth(static_cast<NodePos>(text.size()));
         }
 
-        bool isTrivia() const override { return true; }
         std::string_view text() const { return m_text; }
 
         // Trivia has no slots
-        const GreenNode *getSlot(int index) const override {
+        const GreenNode *slot(int index) const override {
             (void)index;
             return nullptr;
         }
@@ -232,13 +260,12 @@ namespace vela::parse {
             }
         }
 
-        bool isToken() const override { return true; }
         std::string_view text() const { return m_text; }
         const GreenNode *leading() const { return m_leading; }
         const GreenNode *trailing() const { return m_trailing; }
 
         // Tokens are terminal, thus they cannot have children
-        const GreenNode *getSlot(int index) const override {
+        const GreenNode *slot(int index) const override {
             (void)index;
             return nullptr;
         }
@@ -259,7 +286,7 @@ namespace vela::parse {
     template <int N>
     class GreenNodeN : public GreenNode {
     public:
-        const GreenNode *getSlot(int index) const override {
+        const GreenNode *slot(int index) const override {
             return index >= 0 && index < N ? m_slots[index] : nullptr;
         }
 
@@ -281,7 +308,7 @@ namespace vela::parse {
 
     class GreenNodeList : public GreenNode {
     public:
-        const GreenNode *getSlot(int index) const override {
+        const GreenNode *slot(int index) const override {
             return index >= 0 && index < static_cast<int>(m_slots.size())
                 ? m_slots[static_cast<std::size_t>(index)]
                 : nullptr;
@@ -300,6 +327,8 @@ namespace vela::parse {
                 }
             }
         }
+
+        int slotCountSlow() const override { return static_cast<int>(m_slots.size()); }
 
     private:
         std::vector<const GreenNode *> m_slots;

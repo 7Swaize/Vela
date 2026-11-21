@@ -22,6 +22,7 @@ namespace vela::lex {
     X(IntLiteral, "<int>")        \
     X(FloatLiteral, "<float>")    \
     X(StringLiteral, "<string>")  \
+    X(KwComptime, "comptime")     \
     X(KwStruct, "struct")         \
     X(KwClass, "class")           \
     X(KwFn, "fn")                 \
@@ -69,7 +70,8 @@ namespace vela::lex {
     X(LtEq, "<=")                 \
     X(GtEq, ">=")                 \
     X(LtLt, "<<")                 \
-    X(GtGt, ">>")
+    X(GtGt, ">>")                 \
+    X(DotDotDot, "...")           \
 
 #define VELA_SINGLE_CHAR_TOKENS(X) \
     X('(', LParen)                 \
@@ -125,8 +127,6 @@ namespace vela::lex {
 
     using LexPos = uint32_t;
 
-    // Currently we track absolute positions because its easier (and faster in the single compilation sense).
-    // If this were to get transfered to an IDE, we should track offsets to invalidation of every token on edit.
     struct Token {
         LexPos width;
         TokenKind kind;
@@ -180,14 +180,14 @@ namespace vela::lex {
     constexpr inline int kLongestKeyword = [] {
         int max_len = INT_MIN;
 
-#define X(name, str)                                                    \
-    if constexpr (std::string_view(#name).starts_with("Kw")) {          \
-        const int len = static_cast<int>(std::string_view(str).size()); \
-        if (len > max_len) {                                            \
-            max_len = len;                                              \
-        }                                                               \
-    }
-        VELA_CORE_TOKEN_KINDS(X)
+#define X(name, str)                                                        \
+        if constexpr (std::string_view(#name).starts_with("Kw")) {          \
+            const int len = static_cast<int>(std::string_view(str).size()); \
+            if (len > max_len) {                                            \
+                max_len = len;                                              \
+            }                                                               \
+        }
+            VELA_CORE_TOKEN_KINDS(X)
 #undef X
 
         return max_len;
@@ -196,14 +196,14 @@ namespace vela::lex {
     constexpr inline int kShortestKeyword = [] {
         int min_len = INT_MAX;
 
-#define X(name, str)                                                    \
-    if constexpr (std::string_view(#name).starts_with("Kw")) {          \
-        const int len = static_cast<int>(std::string_view(str).size()); \
-        if (len < min_len) {                                            \
-            min_len = len;                                              \
-        }                                                               \
-    }
-        VELA_CORE_TOKEN_KINDS(X)
+#define X(name, str)                                                        \
+        if constexpr (std::string_view(#name).starts_with("Kw")) {          \
+            const int len = static_cast<int>(std::string_view(str).size()); \
+            if (len < min_len) {                                            \
+                min_len = len;                                              \
+            }                                                               \
+        }
+            VELA_CORE_TOKEN_KINDS(X)
 #undef X
 
         return min_len;
