@@ -62,7 +62,9 @@ namespace vela::parse {
             const SyntaxToken *token = oldTree.findToken(start);
             assert(token != nullptr && "this shouldn't happen");
 
-            start = std::max(static_cast<NodePos>(0), token->position() - 1);
+            start = static_cast<NodePos>(
+                std::max(static_cast<std::int64_t>(0), static_cast<std::int64_t>(token->position()) - 1)
+            );
 
             if (token->fullWidth() > 0) {
                 ++i;
@@ -123,7 +125,7 @@ namespace vela::parse {
     Blender::Cursor Blender::Cursor::moveToFirstToken() const {
         Cursor curr = *this;
         if (!curr.isFinished()) {
-            for (const SyntaxElement *node = curr.m_nodeOrToken; node->kind() != NodeKind::UndefinedSyntax && node->isToken(); node = curr.m_nodeOrToken) {
+            for (const SyntaxElement *node = curr.m_nodeOrToken; node->kind() != NodeKind::UndefinedSyntax && !node->isToken(); node = curr.m_nodeOrToken) {
                 curr = curr.moveToFirstChild();
             }
         }

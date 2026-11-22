@@ -10,6 +10,7 @@
 
 #include "green_node_fwds.h"
 #include "frontend/diagnostic.h"
+#include "shared/intrusive_ptr.h"
 #include "shared/preprocessor.h"
 
 namespace vela::parse {
@@ -209,9 +210,26 @@ namespace vela::parse {
             constexpr static int ShiftCountForFlags = 12;
         };
 
+        template <typename U>
+        friend class shared::IntrusivePtr;
+
+        void intrusive_ptr_add_ref() const noexcept {
+            ++m_refCount;
+        }
+
+        void intrusive_ptr_release_ref() const noexcept {
+            if (--m_refCount == 0) {
+                destroy(this);
+            }
+        }
+
+        static void destroy(const GreenNode *root);
+
         NodeKind m_kind;
         NodeDataPacked m_data;
         NodePos m_fullWidth = 0;
+
+        mutable uint32_t m_refCount = 0;
     };
 
     class GreenTrivia final : public GreenNode {

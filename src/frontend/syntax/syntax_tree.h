@@ -22,6 +22,11 @@ namespace vela::parse {
     public:
         explicit SyntaxTree(const GreenCompilationUnitSyntax *greenRoot) : m_greenRoot(greenRoot) { }
 
+        SyntaxTree(const SyntaxTree &) = delete;
+        SyntaxTree &operator=(const SyntaxTree &) = delete;
+        SyntaxTree(SyntaxTree &&) = delete;
+        SyntaxTree &operator=(SyntaxTree &&) = delete;
+
         template <RequiresSyntaxNode T>
         const T *alloc_node(const SyntaxElementAllocArgs &args) {
             // This won't have any effect on locality, since in most cases these will be allocated side-by-side in memory.

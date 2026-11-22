@@ -83,6 +83,7 @@ target_sources(vela_shared INTERFACE
     FILES
         src/shared/allocators.h
         src/shared/helpers.h
+        src/shared/intrusive_ptr.h
         src/shared/preprocessor.h
         src/shared/typing.h
 )
