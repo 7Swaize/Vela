@@ -298,7 +298,7 @@ namespace vela::lex {
         };
     }
 
-    static std::vector<Token> stage2(const uint8_t *source, const LexPos n, const Stage1 &stage) {
+    static std::vector<Token> stage2(const uint8_t *source, const LexPos n, const Stage1 &stage, const bool appendEof) {
         std::vector<Token> tokens{};
         tokens.reserve(stage.starts.size() + 1);
 
@@ -317,7 +317,10 @@ namespace vela::lex {
             cursor = wrapped.end;
         }
 
-        tokens.push_back({.width = 0, .kind = TokenKind::Eof});
+        if (appendEof) {
+            tokens.push_back({.width = 0, .kind = TokenKind::Eof});
+        }
+
         return tokens;
     }
 
@@ -326,16 +329,16 @@ namespace vela::lex {
 
         Stage1 stage{nBlocks};
         stage1(m_src.data(), nBlocks, stage);
-        return stage2(m_src.data(), static_cast<LexPos>(m_src.rawSize()), stage);
+        return stage2(m_src.data(), static_cast<LexPos>(m_src.rawSize()), stage, true);
     }
 
     std::vector<Token> Lexer::lex_subset(const lex::LexPos start, const lex::LexPos end) const {
-        shared::FileSourceBuffer<backend::SimdWord> subset =
+        const shared::FileSourceBuffer<backend::SimdWord> subset =
             shared::FileSourceBuffer<backend::SimdWord>::from_subset(m_src, start, end);
-        const auto nBlocks = static_cast<LexPos>(m_src.alignedSize() / sizeof(backend::SimdWord));
+        const auto nBlocks = static_cast<LexPos>(subset.alignedSize() / sizeof(backend::SimdWord));
 
         Stage1 stage{nBlocks};
-        stage1(m_src.data(), nBlocks, stage);
-        return stage2(m_src.data(), static_cast<LexPos>(m_src.rawSize()), stage);
+        stage1(subset.data(), nBlocks, stage);
+        return stage2(subset.data(), static_cast<LexPos>(subset.rawSize()), stage, end == m_src.rawSize());
     }
 } // namespace vela::lex

@@ -18,6 +18,7 @@ namespace vela::parse {
     X(IntLiteralToken)                         \
     X(FloatLiteralToken)                       \
     X(StringLiteralToken)                      \
+    X(KwComptimeToken)                         \
     X(KwStructToken)                           \
     X(KwClassToken)                            \
     X(KwFnToken)                               \
@@ -66,6 +67,8 @@ namespace vela::parse {
     X(GtEqToken)                               \
     X(LtLtToken)                               \
     X(GtGtToken)                               \
+    X(DotDotDotToken)                          \
+    X(ArrowToken)                              \
     X(ErrorToken)                              \
     X(MissingToken)                            \
 

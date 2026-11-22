@@ -3,8 +3,6 @@
 
 #include <string>
 
-#include "shared/helpers.h"
-
 struct Position {
     uint32_t line;
     uint32_t character;
@@ -12,9 +10,14 @@ struct Position {
     auto operator<=>(const Position&) const = default;
 };
 
+struct PositionSpan {
+    Position start;
+    Position end;
+};
+
 struct Diagnostic {
     std::string message;
-    vela::shared::Range<Position> span;
+    PositionSpan span;
 };
 
 #endif //VELA_DIAGNOSTIC_H

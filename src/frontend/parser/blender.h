@@ -32,7 +32,7 @@ namespace vela::parse {
         }
 
         constexpr bool touches(const TextChangeRange& other) const noexcept {
-            return m_range.start <= other.m_range.start && other.m_range.end <= m_range.end;
+            return m_range.start <= other.m_range.end && other.m_range.start <= m_range.end;
         }
 
         static constexpr TextChangeRange merge(const TextChangeRange& a, const TextChangeRange& b) {
@@ -180,7 +180,7 @@ namespace vela::parse {
             const NormalizedChangeCollection *m_changes;
             std::size_t m_currChange = 0;
 
-            NodePos m_changeDelta;
+            int m_changeDelta;
             NodePos m_newPosition;
         };
 
