@@ -62,8 +62,39 @@ namespace vela::shared {
 
         ArenaAllocator(const ArenaAllocator &) = delete;
         ArenaAllocator &operator=(const ArenaAllocator &) = delete;
-        ArenaAllocator(ArenaAllocator &&) noexcept = default;
-        ArenaAllocator &operator=(ArenaAllocator &&) noexcept = default;
+
+        ArenaAllocator(ArenaAllocator &&other) noexcept
+            : m_chunkSize(other.m_chunkSize), m_cur(other.m_cur), m_end(other.m_end),
+              m_chunks(std::move(other.m_chunks)), m_dtors(m_dtors)
+        {
+            m_cur = nullptr;
+            m_end = nullptr;
+            m_dtors = nullptr;
+        }
+
+        ArenaAllocator &operator=(ArenaAllocator &&other) noexcept {
+            if (this == &other) {
+                return *this;
+            }
+
+            while (m_dtors) {
+                m_dtors->destroy(m_dtors->obj);
+                m_dtors = m_dtors->next;
+            }
+
+            m_chunkSize = other.m_chunkSize;
+            m_cur = other.m_cur;
+            m_end = other.m_end;
+            m_dtors = other.m_dtors;
+            m_chunks = std::move(other.m_chunks);
+            m_dtors = other.m_dtors;
+
+            other.m_cur = nullptr;
+            other.m_end = nullptr;
+            other.m_dtors = nullptr;
+
+            return *this;
+        }
 
         template <typename T, typename... Args>
         [[nodiscard]] T *make(Args &&...args) {
@@ -157,7 +188,7 @@ namespace vela::shared {
         }
 
 
-        size_t m_chunkSize;
+        std::size_t m_chunkSize;
         std::byte *m_cur = nullptr;
         std::byte *m_end = nullptr;
         std::vector<std::unique_ptr<std::byte[]>> m_chunks;
