@@ -10,6 +10,7 @@
 
 #include "frontend/syntax/green/green_node_fwds.h"
 #include "lexer/lex.h"
+#include "shared/allocators.h"
 #include "shared/helpers.h"
 #include "syntax/syntax_node.h"
 
@@ -119,11 +120,11 @@ namespace vela::parse {
         public:
             Cursor() noexcept = default;
 
-            Cursor(const SyntaxElement *nodeOrToken, int indexInParent) noexcept
-                : m_nodeOrToken(nodeOrToken), m_indexInParent(indexInParent) { }
+            explicit Cursor(const SyntaxElement *nodeOrToken) noexcept
+                : m_nodeOrToken(nodeOrToken) { }
 
             static Cursor from_root(const SyntaxNode *node) {
-                return Cursor(node, 0);
+                return Cursor(node);
             }
 
             const SyntaxElement *nodeOrToken() const noexcept { return m_nodeOrToken; }
@@ -138,8 +139,7 @@ namespace vela::parse {
 
         private:
             Cursor moveToParent() const {
-                const SyntaxNode *parent = m_nodeOrToken->parent();
-                return Cursor(parent, m_nodeOrToken->indexInParent());
+                return Cursor(m_nodeOrToken->parent());
             }
 
             static bool isNonZeroWidthOrIsEndOfFile(const SyntaxElement *element) {
@@ -149,38 +149,43 @@ namespace vela::parse {
             Cursor tryFindNextNonZeroWidthOrIsEndOfFileSibling() const;
 
             const SyntaxElement *m_nodeOrToken;
-            int m_indexInParent = 0;
         };
 
         class Reader {
         public:
             Reader(lex::Lexer lexer,
-                    Cursor cursor,
-                    const NormalizedChangeCollection* changes,
-                    NodePos changeDelta,
-                    NodePos newPosition)
-                : m_lexer(lexer), m_oldTreeCursor(cursor),
-                  m_changes(changes), m_changeDelta(changeDelta), m_newPosition(newPosition) { }
+                   shared::ArenaAllocator *arena,
+                   Cursor cursor,
+                   std::shared_ptr<const NormalizedChangeCollection> changes,
+                   std::size_t currChange,
+                   std::int64_t changeDelta,
+                   NodePos newPosition)
+                : m_lexer(lexer), m_arena(arena), m_oldTreeCursor(cursor), m_changes(std::move(changes)),
+                  m_currChange(currChange), m_changeDelta(changeDelta), m_newPosition(newPosition) { }
 
             BlendedNode readNodeOrToken();
 
         private:
             void skipOldElement();
+            void skipOldToken();
             void skipCurrent(const SyntaxElement *nodeOrToken);
             void skipPastChanges();
 
             BlendedNode readNewToken();
-            std::optional<BlendedNode> tryTokenReuse();
+            std::optional<BlendedNode> tryReuse();
 
             bool intersectsCurrentChange(const SyntaxElement *element) const;
             bool canReuse(const SyntaxElement *element) const;
 
+            BlendedNode createBlendedNode(const GreenNode *green) const;
+
             lex::Lexer m_lexer;
+            shared::ArenaAllocator *m_arena;
             Cursor m_oldTreeCursor;
-            const NormalizedChangeCollection *m_changes;
+            std::shared_ptr<const NormalizedChangeCollection> m_changes;
             std::size_t m_currChange = 0;
 
-            int m_changeDelta;
+            std::int64_t m_changeDelta;
             NodePos m_newPosition;
         };
 
@@ -188,15 +193,29 @@ namespace vela::parse {
         Blender(lex::Lexer lexer, const SyntaxNode* oldTree, std::span<const TextChangeRange> changes);
 
     private:
+        Blender(lex::Lexer lexer,
+                shared::ArenaAllocator *arena,
+                Cursor oldTreeCursor,
+                std::shared_ptr<const NormalizedChangeCollection> changes,
+                std::size_t currChange,
+                std::int64_t changeDelta,
+                NodePos newPosition)
+            : m_lexer(lexer), m_arena(arena), m_oldTreeCursor(oldTreeCursor), m_changes(std::move(changes)),
+              m_currChange(currChange), m_changeDelta(changeDelta), m_newPosition(newPosition) { }
+
         static TextChangeRange extendToAffectedRange(const SyntaxNode& oldTree, const TextChangeRange &change);
 
         lex::Lexer m_lexer;
+        shared::ArenaAllocator *m_arena;
         Cursor m_oldTreeCursor;
 
         std::shared_ptr<const NormalizedChangeCollection> m_changes = std::make_shared<const NormalizedChangeCollection>();
         std::size_t m_currChange = 0;
 
-        NodePos m_changeDelta; // old position - new position
+        // Given 'NodePos' is a uint32_t, this is a 'std::int64_t' to accommodate for such a change difference.
+        // However, it is impractical in most cases. The only one of which really exists when we
+        // are lexing a completely new file, where we continuously increment the delta.
+        std::int64_t m_changeDelta; // old position - new position
         NodePos m_newPosition;
 
     };

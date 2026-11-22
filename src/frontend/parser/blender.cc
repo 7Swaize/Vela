@@ -4,7 +4,7 @@
 
 namespace vela::parse {
     struct BlendedNode {
-        const SyntaxElement *element;
+        const GreenNode *green;
         Blender blender;
     };
 
@@ -82,7 +82,7 @@ namespace vela::parse {
                 const SyntaxElement *sibling = parent->child(i);
 
                 if (sibling != nullptr && isNonZeroWidthOrIsEndOfFile(sibling)) {
-                    return Cursor(sibling, i);
+                    return Cursor(sibling);
                 }
             }
         }
@@ -113,7 +113,7 @@ namespace vela::parse {
         for (int i = 0; i < asnode->slotCount(); ++i) {
             const SyntaxElement *child = asnode->child(i);
             if (child != nullptr && isNonZeroWidthOrIsEndOfFile(child)) {
-                return Cursor(child, i);
+                return Cursor(child);
             }
         }
 
@@ -134,7 +134,7 @@ namespace vela::parse {
     BlendedNode Blender::Reader::readNodeOrToken() {
         while (true) {
             if (m_oldTreeCursor.isFinished()) {
-                readNewToken();
+                return readNewToken();
             }
 
             // If we are further ahead in the new text (change delta is negative), we keep
@@ -149,14 +149,21 @@ namespace vela::parse {
             } else if (m_changeDelta > 0) {
                 return readNewToken();
             } else {
+                if (std::optional<BlendedNode> blended = tryReuse(); blended.has_value()) {
+                    return *std::move(blended);
+                }
 
+                if (m_oldTreeCursor.nodeOrToken()->isNode()) {
+                    m_oldTreeCursor = m_oldTreeCursor.moveToFirstChild();
+                } else {
+                    skipOldToken();
+                }
             }
         }
     }
 
     void Blender::Reader::skipOldElement() {
         assert(!m_oldTreeCursor.isFinished());
-        assert(m_changeDelta < 0);
 
         // Greedily take the largest element (preferably a node) that is smaller than the change delta.
         while (m_oldTreeCursor.nodeOrToken()->isNode()) {
@@ -167,6 +174,17 @@ namespace vela::parse {
             }
 
             m_oldTreeCursor = m_oldTreeCursor.moveToFirstChild();
+        }
+
+        skipCurrent(m_oldTreeCursor.nodeOrToken());
+    }
+
+    void Blender::Reader::skipOldToken() {
+        assert(!m_oldTreeCursor.isFinished());
+
+        m_oldTreeCursor = m_oldTreeCursor.moveToFirstToken();
+        if (m_oldTreeCursor.isFinished()) {
+            return;
         }
 
         skipCurrent(m_oldTreeCursor.nodeOrToken());
@@ -206,11 +224,21 @@ namespace vela::parse {
 
     }
 
-    std::optional<BlendedNode> Blender::Reader::tryTokenReuse() {
+    std::optional<BlendedNode> Blender::Reader::tryReuse() {
+        const SyntaxElement *current = m_oldTreeCursor.nodeOrToken();
+        if (!canReuse(current)) {
+            return std::nullopt;
+        }
 
+        m_newPosition += current->fullWidth();
+        m_oldTreeCursor = m_oldTreeCursor.moveToNextSibling(m_oldTreeCursor);
+
+        return createBlendedNode(current->green());
     }
 
     bool Blender::Reader::canReuse(const SyntaxElement *element) const {
+        const GreenNode *green = element->green();
+
         // The only non-error or valid-for-reuse 0-width token that exists is the EofToken.
         if (element->fullWidth() == 0) {
             return false;
@@ -220,5 +248,22 @@ namespace vela::parse {
         if (intersectsCurrentChange(element)) {
             return false;
         }
+
+        // Nodes with diagnostics can't be reused
+        if (green->containsDiagnostics() ||
+            (green->isToken() && green->containsSkippedText()
+                && element->parent() != nullptr && element->parent()->green()->containsDiagnostics()))
+        {
+            return false;
+        }
+
+        return true;
+    }
+
+    BlendedNode Blender::Reader::createBlendedNode(const GreenNode *green) const {
+        return BlendedNode{
+            .green = green,
+            .blender = Blender(m_lexer, m_arena, m_oldTreeCursor, m_changes, m_currChange, m_changeDelta, m_newPosition)
+        };
     }
 } // namespace vela::parse
