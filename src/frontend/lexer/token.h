@@ -23,6 +23,7 @@ namespace vela::lex {
     X(FloatLiteral, "<float>")    \
     X(StringLiteral, "<string>")  \
     X(KwComptime, "comptime")     \
+    X(KwConcept, "concept")       \
     X(KwStruct, "struct")         \
     X(KwClass, "class")           \
     X(KwFn, "fn")                 \

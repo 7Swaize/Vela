@@ -21,6 +21,7 @@ namespace vela::parse {
     X(FloatLiteralToken)                       \
     X(StringLiteralToken)                      \
     X(KwComptimeToken)                         \
+    X(KwConcept)                               \
     X(KwStructToken)                           \
     X(KwClassToken)                            \
     X(KwFnToken)                               \
