@@ -2,6 +2,7 @@
 #define VELA_GREEN_NODE_H
 
 #include <algorithm>
+#include <array>
 #include <cassert>
 #include <span>
 #include <string_view>
@@ -10,7 +11,6 @@
 
 #include "green_node_fwds.h"
 #include "frontend/diagnostic.h"
-#include "shared/intrusive_ptr.h"
 #include "shared/preprocessor.h"
 
 namespace vela::parse {

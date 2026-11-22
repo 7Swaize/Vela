@@ -20,7 +20,7 @@ namespace vela::parse {
 
     class SyntaxTree {
     public:
-        explicit SyntaxTree(const GreenCompilationUnitSyntax *greenRoot) : m_greenRoot(greenRoot) { }
+        explicit SyntaxTree(GreenRef<GreenCompilationUnitSyntax> greenRoot);
 
         SyntaxTree(const SyntaxTree &) = delete;
         SyntaxTree &operator=(const SyntaxTree &) = delete;
@@ -41,14 +41,14 @@ namespace vela::parse {
             return m_arena.make<SyntaxToken>(args.green, args.parent, args.position, args.index);
         }
 
-        const GreenCompilationUnitSyntax *greenRoot() const { return m_greenRoot; }
+        const GreenCompilationUnitSyntax *greenRoot() const { return m_greenRoot.get(); }
         const CompilationUnitSyntax *root();
 
         std::span<Diagnostic *> diagnostics() const;
 
     private:
+        GreenRef<GreenCompilationUnitSyntax> m_greenRoot;
         const CompilationUnitSyntax *m_root = nullptr;
-        const GreenCompilationUnitSyntax *m_greenRoot;
         shared::ArenaAllocator m_arena;
     };
 }

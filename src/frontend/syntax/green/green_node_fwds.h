@@ -3,6 +3,8 @@
 
 #include <cstdint>
 
+#include "shared/intrusive_ptr.h"
+
 namespace vela::parse {
 #define VELA_TRIVIA_SYNTAX_NODE_KINDS(X)       \
     X(NewlineTrivia)                           \
@@ -127,6 +129,9 @@ namespace vela::parse {
 #define X(Kind) class Green##Kind;
     VELA_NONTERMINAL_SYNTAX_NODE_KINDS(X)
 #undef X
+
+    template <typename T>
+    using GreenRef = shared::IntrusivePtr<T>;
 }
 
 #endif //VELA_GREEN_NODE_FWDS_H
