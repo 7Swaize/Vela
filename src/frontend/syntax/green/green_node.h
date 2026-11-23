@@ -245,6 +245,7 @@ namespace vela::parse {
 
         // Trivia has no slots
         const GreenNode *slot(int index) const override {
+            assert(false && "trivia cannot have children");
             (void)index;
             return nullptr;
         }
@@ -284,6 +285,7 @@ namespace vela::parse {
 
         // Tokens are terminal, thus they cannot have children
         const GreenNode *slot(int index) const override {
+            assert(false && "tokens cannot have children");
             (void)index;
             return nullptr;
         }
