@@ -201,10 +201,8 @@ namespace vela::parse {
     void Blender::Reader::skipPastChanges() {
         NodePos oldPos = m_oldTreeCursor.nodeOrToken()->position();
         while (m_currChange < m_changes->size() && oldPos >= m_changes->operator[](m_currChange).range().end) {
-            TextChangeRange change = m_changes->operator[](m_currChange);
-
+            m_changeDelta += m_changes->operator[](m_currChange).delta();
             ++m_currChange;
-            m_changeDelta += change.newLength() - change.range().length();
         }
     }
 

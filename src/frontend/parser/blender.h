@@ -29,7 +29,7 @@ namespace vela::parse {
         constexpr NodePos newLength() const noexcept { return m_newLength; }
 
         constexpr std::ptrdiff_t delta() const noexcept {
-            return m_newLength - m_range.length();
+            return static_cast<std::ptrdiff_t>(m_newLength) - static_cast<std::ptrdiff_t>(m_range.length());
         }
 
         constexpr bool touches(const TextChangeRange& other) const noexcept {
