@@ -20,6 +20,10 @@ namespace vela::parse {
 
     class SyntaxTree {
     public:
+        // Only the SyntaxTree needs to store a GreenRef<T> to a GreenNode. Since red nodes cannot outlive
+        // the syntax tree (and thus cannot outlive the compilation), we are guaranteed that holding just
+        // the root will keep everything we need alive. Avoiding a GreenRef<T> on every red node also allows
+        // for trivial destruction within the memory arena (i.e. a GreenRef<T> member prevents trival destruction).
         explicit SyntaxTree(GreenRef<GreenCompilationUnitSyntax> greenRoot);
 
         SyntaxTree(const SyntaxTree &) = delete;

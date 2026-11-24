@@ -34,7 +34,7 @@ namespace vela::shared {
         IntrusivePtr(IntrusivePtr &&other) noexcept : m_ptr(other.detach()) { }
 
         template <typename U> requires std::convertible_to<U *, T *>
-        IntrusivePtr(const IntrusivePtr<U> &other) noexcept : m_ptr(other.m_ptr) { retain(m_ptr); }
+        IntrusivePtr(const IntrusivePtr<U> &other) noexcept : m_ptr(other.get()) { retain(m_ptr); }
 
         template <typename U> requires std::convertible_to<U *, T *>
         IntrusivePtr(IntrusivePtr<U> &&other) noexcept :m_ptr(other.detach()) { }

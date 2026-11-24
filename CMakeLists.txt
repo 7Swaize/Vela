@@ -125,6 +125,7 @@ add_library(vela_parser STATIC
     src/frontend/syntax/syntax_tree.cc
     src/frontend/syntax/syntax_tree.h
 
+    src/frontend/syntax/green/green_node.cc
     src/frontend/syntax/green/green_node.h
     src/frontend/syntax/green/green_node_fwds.h
     src/frontend/syntax/green/green_nonterminals.h

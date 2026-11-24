@@ -86,16 +86,7 @@ namespace vela::parse {
         // token by token as we would in a sequential, scalar lexer. Therefore, we just lex the whole
         // changed span AOT. Since, our lexer is so fast, it doesn't matter if some of these tokens could
         // have been reused.
-        NormalizedChangeCollection lexAot(lex::Lexer lexer) const {
-            std::vector<std::vector<GreenToken>> aotLex;
-            aotLex.reserve(m_changes.size());
-
-            for (const auto& change : m_changes) {
-                m_changes.push_back(lexer.lex_subset(/* TODO */));
-            }
-
-            return NormalizedChangeCollection(std::move(m_changes), std::move(aotLex));
-        }
+        NormalizedChangeCollection lexAot(lex::Lexer lexer) const;
 
         std::size_t size() const noexcept { return m_changes.size(); }
         bool empty() const noexcept { return m_changes.empty(); }

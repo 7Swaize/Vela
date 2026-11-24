@@ -15,6 +15,8 @@ namespace vela::lex {
         std::vector<Token> lex() const;
         std::vector<Token> lex_subset(lex::LexPos start, lex::LexPos end) const;
 
+        const shared::FileSourceBuffer<backend::SimdWord> &src() const noexcept { return m_src; }
+
     private:
         const shared::FileSourceBuffer<backend::SimdWord>& m_src;
     };

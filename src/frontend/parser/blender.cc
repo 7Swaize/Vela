@@ -28,6 +28,19 @@ namespace vela::parse {
         m_changes.erase(std::next(out), m_changes.end());
     }
 
+    NormalizedChangeCollection NormalizedChangeCollection::lexAot(lex::Lexer lexer) const {
+        std::int64_t srcSize = static_cast<std::int64_t>(lexer.src().rawSize());
+        std::int64_t cumulativeShift = 0;
+
+        for (const TextChangeRange &change : m_changes) {
+            std::int64_t newStart = static_cast<std::int64_t>(change.range().start) + cumulativeShift;
+            std::int64_t newEnd = newStart + static_cast<std::int64_t>(change.newLength());
+            cumulativeShift += change.delta();
+
+            assert(newStart > 0 && newEnd <= srcSize);
+        }
+    }
+
     // Addresses normalization mentioned here in ctor: https://github.com/dotnet/roslyn/blob/main/src/Compilers/CSharp/Portable/Parser/Blender.cs
     Blender::Blender(lex::Lexer lexer, const SyntaxNode* oldTree, std::span<const TextChangeRange> changes)
         : m_lexer(lexer), m_changeDelta(0)
