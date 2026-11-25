@@ -11,7 +11,7 @@ namespace vela::lex {
     constexpr inline uint8_t kPunctBits = 0x70;
     constexpr inline uint8_t kDigitBits = 0x08;
 
-    enum ExecutionContext : uint8_t {
+    enum class ExecutionContext : uint8_t {
         Code,
         String,
         SingleLineComment,
@@ -55,7 +55,7 @@ namespace vela::lex {
             const uint8_t next = p[i + 1]; // we are guaranteed this is valid
 
             switch (state.context) {
-                case Code:
+                case ExecutionContext::Code:
                     if (quotes & bit(i)) {
                         in_str |= bit(i);
                         state.context = ExecutionContext::String;
@@ -72,21 +72,21 @@ namespace vela::lex {
                         ++i;
                     }
                     break;
-                case String:
+                case ExecutionContext::String:
                     if (quotes & bit(i)) {
                         state.context = ExecutionContext::Code;
                     } else {
                         in_str |= bit(i);
                     }
                     break;
-                case SingleLineComment:
+                case ExecutionContext::SingleLineComment:
                     if (curr == '\n') {
                         state.context = ExecutionContext::Code;
                     } else {
                         comment |= bit(i);
                     }
                     break;
-                case MultiLineComment:
+                case ExecutionContext::MultiLineComment:
                     comment |= bit(i);
                     if (curr == '*' && next == '/') {
                         state.context = ExecutionContext::Code;

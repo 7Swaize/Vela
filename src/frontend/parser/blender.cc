@@ -63,7 +63,7 @@ namespace vela::parse {
     }
 
     TextChangeRange Blender::extendToAffectedRange(const SyntaxNode& oldTree, const TextChangeRange &change) {
-        // It's very unfortunate that we have to lookahead by 2 tokens to accommodate for packs: '..."
+        // It's very unfortunate that we have to lookahead by 2 tokens to accommodate for packs: '...'
         constexpr int tokenLookahead = 2;
 
         NodePos last = oldTree.fullWidth();
