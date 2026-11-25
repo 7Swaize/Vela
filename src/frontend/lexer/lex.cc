@@ -244,6 +244,8 @@ namespace vela::lex {
 
     static WrappedToken lex_pair(const uint8_t *source, const Stage1& stage, const LexPos pos) {
         // A pair directly followed by another pair (e.g. "===") is malformed.
+        //
+        // This also causes '<=>' overlap to not produce two tokens, rather an error token spaning the group.
         if (bit_set(stage.pair, pos + 1)) {
             LexPos end = pos + run_len(stage.pair, pos) + 1;
             return {.width = end - pos, .end = end, .kind = TokenKind::Error};

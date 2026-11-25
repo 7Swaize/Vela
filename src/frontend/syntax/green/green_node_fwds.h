@@ -72,6 +72,7 @@ namespace vela::parse {
     X(GtGtToken)                               \
     X(DotDotDotToken)                          \
     X(ArrowToken)                              \
+    X(FatArrowToken)                           \
     X(ErrorToken)                              \
     X(MissingToken)                            \
 
@@ -104,6 +105,26 @@ namespace vela::parse {
     X(ObjectCreationExpressionSyntax)          \
     X(InitializerExpressionSyntax)             \
     X(ArrayCreationExpressionSyntax)           \
+    X(ConceptDeclarationSyntax)                \
+    X(TemplateParameterListSyntax)             \
+    X(TemplateParameterSyntax)                 \
+    X(TemplateArgumentListSyntax)              \
+    X(TemplateArgumentSyntax)                  \
+    X(ConstraintClauseSyntax)                  \
+    X(RequirementBlockSyntax)                  \
+    X(RequirementSyntax)                       \
+    X(ArrowExpressionClauseSyntax)             \
+    X(TemplateNameSyntax)                      \
+    X(PackExpansionSyntax)                     \
+    X(TypeVariableSyntax)                      \
+    X(MemberAccessExpressionSyntax)            \
+    X(LeftFoldExpressionSyntax)                \
+    X(RightFoldExpressionSyntax)               \
+    X(OperatorReferenceExpressionSyntax)       \
+    X(ComptimeMatchExpressionSyntax)           \
+    X(ComptimeIfStatementSyntax)               \
+    X(ComptimeForStatementSyntax)              \
+    X(ComptimeBlockStatementSyntax)            \
     X(UndefinedSyntax)                         \
 
 #define VELA_LIST_SYNTAX_NODE_KINDS(X)         \

@@ -54,6 +54,11 @@ namespace {
         "while_ if_ _if if1 iff Fn fn_ _fn0",
         "0 00 007 123456789 1.0 0.0 10.01 1_000",
         "a.b.c.d[e](f)",
+        // FatArrow
+        "=>",
+        "x => x + 1; fn f(int a) => a;",
+        "a=>b; c==>d; e=>>f; g=>=h; i>=>j; k!=>l; m->=>n; o=>->p; q=>&&r",
+        "\"=>\" // =>\n/* => */ =>",
         // Pack
         "...",
         "....",
@@ -227,16 +232,16 @@ TEST(ReferenceLexer, KeywordsAndIdentifiers) {
 }
 
 TEST(ReferenceLexer, TriviaPredicate) {
-    EXPECT_TRUE(vela::lex::is_trivia(K::NewlineTrivia));
-    EXPECT_TRUE(vela::lex::is_trivia(K::SpaceTrivia));
-    EXPECT_TRUE(vela::lex::is_trivia(K::TabTrivia));
-    EXPECT_TRUE(vela::lex::is_trivia(K::CarriageReturnTrivia));
-    EXPECT_TRUE(vela::lex::is_trivia(K::CommentTrivia));
-    EXPECT_TRUE(vela::lex::is_trivia(K::MultilineCommentTrivia));
-    EXPECT_FALSE(vela::lex::is_trivia(K::Identifier));
-    EXPECT_FALSE(vela::lex::is_trivia(K::Slash));
-    EXPECT_FALSE(vela::lex::is_trivia(K::Error));
-    EXPECT_FALSE(vela::lex::is_trivia(K::Eof));
+    EXPECT_TRUE(is_trivia(K::NewlineTrivia));
+    EXPECT_TRUE(is_trivia(K::SpaceTrivia));
+    EXPECT_TRUE(is_trivia(K::TabTrivia));
+    EXPECT_TRUE(is_trivia(K::CarriageReturnTrivia));
+    EXPECT_TRUE(is_trivia(K::CommentTrivia));
+    EXPECT_TRUE(is_trivia(K::MultilineCommentTrivia));
+    EXPECT_FALSE(is_trivia(K::Identifier));
+    EXPECT_FALSE(is_trivia(K::Slash));
+    EXPECT_FALSE(is_trivia(K::Error));
+    EXPECT_FALSE(is_trivia(K::Eof));
 }
 
 TEST(ReferenceLexer, Numbers) {
@@ -280,12 +285,11 @@ TEST(ReferenceLexer, UnterminatedStrings){
 }
 
 TEST(ReferenceLexer, Operators) {
-    EXPECT_EQ(filter_non_trivia("== != <= >= << >> && || ->"), (KindsVec{K::EqEq, K::ExclEq, K::LtEq, K::GtEq, K::LtLt, K::GtGt, K::AmpAmp, K::PipePipe, K::Arrow, K::Eof}));
+    EXPECT_EQ(filter_non_trivia("== != <= >= << >> && || -> =>"), (KindsVec{K::EqEq, K::ExclEq, K::LtEq, K::GtEq, K::LtLt, K::GtGt, K::AmpAmp, K::PipePipe, K::Arrow, K::FatArrow, K::Eof}));
     EXPECT_EQ(kinds("a<b"), (KindsVec{K::Identifier, K::Lt, K::Identifier, K::Eof}));
     EXPECT_EQ(kinds("x=y"), (KindsVec{K::Identifier, K::Assign, K::Identifier, K::Eof}));
     EXPECT_EQ(kinds("= ="), (KindsVec{K::Assign, K::SpaceTrivia, K::Assign, K::Eof}));
     EXPECT_EQ(kinds("& &"), (KindsVec{K::Amp, K::SpaceTrivia, K::Amp, K::Eof}));
-    EXPECT_EQ(kinds("<=>"), (KindsVec{K::LtEq, K::Gt, K::Eof}));
     EXPECT_EQ(kinds("!x"), (KindsVec{K::Excl, K::Identifier, K::Eof}));
     EXPECT_EQ(kinds("a==!b"), (KindsVec{K::Identifier, K::EqEq, K::Excl, K::Identifier, K::Eof}));
 }
@@ -302,6 +306,24 @@ TEST(ReferenceLexer, MalformedOperatorChains) {
     EXPECT_EQ(inv_ref("->="), (TokenVec{{3, K::Error}, {0, K::Eof}}));
     EXPECT_EQ(inv_ref("->=="), (TokenVec{{4, K::Error}, {0, K::Eof}}));
     EXPECT_EQ(inv_ref("->>="), (TokenVec{{4, K::Error}, {0, K::Eof}}));
+
+    // FatArrow participates in the same rule: "=>" directly followed by (or directly following) another operator is malformed.
+    EXPECT_EQ(inv_ref("=>>"), (TokenVec{{3, K::Error}, {0, K::Eof}}));
+    EXPECT_EQ(inv_ref("=>="), (TokenVec{{3, K::Error}, {0, K::Eof}}));
+    EXPECT_EQ(inv_ref("==>"), (TokenVec{{3, K::Error}, {0, K::Eof}}));
+    EXPECT_EQ(inv_ref("<=>"), (TokenVec{{3, K::Error}, {0, K::Eof}}));
+    EXPECT_EQ(inv_ref(">=>"), (TokenVec{{3, K::Error}, {0, K::Eof}}));
+    EXPECT_EQ(inv_ref("!=>"), (TokenVec{{3, K::Error}, {0, K::Eof}}));
+    EXPECT_EQ(inv_ref("=>=="), (TokenVec{{4, K::Error}, {0, K::Eof}}));
+    EXPECT_EQ(inv_ref("->=>"), (TokenVec{{4, K::Error}, {0, K::Eof}}));
+
+    // Unlike "->->", back to back fat arrows overlap (the middle ">=" is itself an operator), so they are malformed.
+    EXPECT_EQ(inv_ref("=>=>"), (TokenVec{{4, K::Error}, {0, K::Eof}}));
+
+    // A leading '=' or '-' that is not part of the pair stays on its own.
+    EXPECT_EQ(inv_ref("-=>"), (TokenVec{{1, K::Minus}, {2, K::FatArrow}, {0, K::Eof}}));
+    EXPECT_EQ(kinds("=>>a"), (KindsVec{K::Error, K::Identifier, K::Eof}));
+    EXPECT_EQ(kinds("=>= =>"), (KindsVec{K::Error, K::SpaceTrivia, K::FatArrow, K::Eof}));
 
     // The malformed block starts at the '-' only when "->" itself starts it; a leading lone '-' is still Minus.
     EXPECT_EQ(inv_ref("-->>"), (TokenVec{{1, K::Minus}, {3, K::Error}, {0, K::Eof}}));
@@ -361,6 +383,47 @@ TEST(ReferenceLexer, ArrowInsideStringsAndComments) {
     EXPECT_EQ(kinds("// ->\n->"), (KindsVec{K::CommentTrivia, K::NewlineTrivia, K::Arrow, K::Eof}));
     EXPECT_EQ(kinds("/* -> */->"), (KindsVec{K::MultilineCommentTrivia, K::Arrow, K::Eof}));
     EXPECT_EQ(kinds(R"("->"->"->")"), (KindsVec{K::StringLiteral, K::Arrow, K::StringLiteral, K::Eof}));
+}
+
+TEST(ReferenceLexer, FatArrow) {
+    EXPECT_EQ(inv_ref("=>"), (TokenVec{{2, K::FatArrow}, {0, K::Eof}}));
+    EXPECT_EQ(inv_ref("=> "), (TokenVec{{2, K::FatArrow}, {1, K::SpaceTrivia}, {0, K::Eof}}));
+    EXPECT_EQ(inv_ref("a=>b"), (TokenVec{{1, K::Identifier}, {2, K::FatArrow}, {1, K::Identifier}, {0, K::Eof}}));
+    EXPECT_EQ(kinds("a => b"), (KindsVec{K::Identifier, K::SpaceTrivia, K::FatArrow, K::SpaceTrivia, K::Identifier, K::Eof}));
+    EXPECT_EQ(kinds("1=>2"), (KindsVec{K::IntLiteral, K::FatArrow, K::IntLiteral, K::Eof}));
+    EXPECT_EQ(kinds("1.5=>x"), (KindsVec{K::FloatLiteral, K::FatArrow, K::Identifier, K::Eof}));
+    EXPECT_EQ(kinds("=> =>"), (KindsVec{K::FatArrow, K::SpaceTrivia, K::FatArrow, K::Eof}));
+
+    // '=' and '>' only form a fat arrow when adjacent, and "=>" is not the same thing as ">=".
+    EXPECT_EQ(kinds("= >"), (KindsVec{K::Assign, K::SpaceTrivia, K::Gt, K::Eof}));
+    EXPECT_EQ(kinds("=\t>"), (KindsVec{K::Assign, K::TabTrivia, K::Gt, K::Eof}));
+    EXPECT_EQ(kinds("=\n>"), (KindsVec{K::Assign, K::NewlineTrivia, K::Gt, K::Eof}));
+    EXPECT_EQ(kinds("=/**/>"), (KindsVec{K::Assign, K::MultilineCommentTrivia, K::Gt, K::Eof}));
+    EXPECT_EQ(kinds("=//c\n>"), (KindsVec{K::Assign, K::CommentTrivia, K::NewlineTrivia, K::Gt, K::Eof}));
+    EXPECT_EQ(kinds(">="), (KindsVec{K::GtEq, K::Eof}));
+    EXPECT_EQ(kinds("== =>"), (KindsVec{K::EqEq, K::SpaceTrivia, K::FatArrow, K::Eof}));
+    EXPECT_EQ(kinds("=> >="), (KindsVec{K::FatArrow, K::SpaceTrivia, K::GtEq, K::Eof}));
+
+    // Neighbouring operators that do not form a pair with the fat arrow.
+    EXPECT_EQ(kinds("&&=>"), (KindsVec{K::AmpAmp, K::FatArrow, K::Eof}));
+    EXPECT_EQ(kinds("=>&&"), (KindsVec{K::FatArrow, K::AmpAmp, K::Eof}));
+    EXPECT_EQ(kinds("=>->"), (KindsVec{K::FatArrow, K::Arrow, K::Eof}));
+    EXPECT_EQ(kinds("=>!x"), (KindsVec{K::FatArrow, K::Excl, K::Identifier, K::Eof}));
+    EXPECT_EQ(kinds("x=>!y"), (KindsVec{K::Identifier, K::FatArrow, K::Excl, K::Identifier, K::Eof}));
+
+    EXPECT_EQ(filter_non_trivia("(int a) => a + 1"),
+              (KindsVec{K::LParen, K::KwInt, K::Identifier, K::RParen, K::FatArrow, K::Identifier, K::Plus, K::IntLiteral, K::Eof}));
+}
+
+TEST(ReferenceLexer, FatArrowInsideStringsAndComments) {
+    // Fat arrow is just content inside strings and comments; it's not an operator.
+    EXPECT_EQ(kinds(R"("=>")"), (KindsVec{K::StringLiteral, K::Eof}));
+    EXPECT_EQ(kinds(R"("a => b")"), (KindsVec{K::StringLiteral, K::Eof}));
+    EXPECT_EQ(kinds("// =>"), (KindsVec{K::CommentTrivia, K::Eof}));
+    EXPECT_EQ(kinds("/* => */"), (KindsVec{K::MultilineCommentTrivia, K::Eof}));
+    EXPECT_EQ(kinds("// =>\n=>"), (KindsVec{K::CommentTrivia, K::NewlineTrivia, K::FatArrow, K::Eof}));
+    EXPECT_EQ(kinds("/* => */=>"), (KindsVec{K::MultilineCommentTrivia, K::FatArrow, K::Eof}));
+    EXPECT_EQ(kinds(R"("=>"=>"=>")"), (KindsVec{K::StringLiteral, K::FatArrow, K::StringLiteral, K::Eof}));
 }
 
 TEST(ReferenceLexer, DotDotDot) {
@@ -595,5 +658,15 @@ TEST(Differential, UnterminatedBlockCommentAtEveryAlignment) {
         ASSERT_TRUE(same_as_reference(pad + "/* x")) << "shift=" << shift;
         ASSERT_TRUE(same_as_reference(pad + "//")) << "shift=" << shift;
         ASSERT_TRUE(same_as_reference(pad + "// x")) << "shift=" << shift;
+    }
+}
+
+// The two bytes of "=>" can land on either side of a SIMD block boundary, so slide it across several blocks.
+TEST(Differential, FatArrowAtEveryAlignment) {
+    for (std::size_t shift = 0; shift <= 2 * sizeof(backend::SimdWord) + 1; ++shift) {
+        const std::string pad(shift, ' ');
+        for (const std::string_view tail : {"=>", "a=>b", "=>=", "==>", "=>>", "<=>", "=>=>", "->=>"}) {
+            ASSERT_TRUE(same_as_reference(pad + std::string(tail))) << "shift=" << shift << " tail=" << tail;
+        }
     }
 }
