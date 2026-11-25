@@ -1,4 +1,3 @@
-// ReSharper disable CppRedundantParentheses
 #include <bit>
 #include <limits>
 #include <vector>
@@ -142,7 +141,7 @@ namespace vela::lex {
             case '|':
                 return TokenKind::PipePipe;
             case '=':
-                return TokenKind::EqEq;
+                return b == '=' ? TokenKind::EqEq : TokenKind::FatArrow;
             case '!':
                 return TokenKind::ExclEq;
             case '<':

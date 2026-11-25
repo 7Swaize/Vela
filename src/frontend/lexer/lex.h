@@ -13,7 +13,7 @@ namespace vela::lex {
         explicit Lexer(const shared::FileSourceBuffer<backend::SimdWord> &src) : m_src(src) { }
 
         std::vector<Token> lex() const;
-        std::vector<Token> lex_subset(lex::LexPos start, lex::LexPos end) const;
+        std::vector<Token> lex_subset(LexPos start, LexPos end) const;
 
         const shared::FileSourceBuffer<backend::SimdWord> &src() const noexcept { return m_src; }
 

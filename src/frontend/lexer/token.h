@@ -73,7 +73,8 @@ namespace vela::lex {
     X(LtLt, "<<")                 \
     X(GtGt, ">>")                 \
     X(DotDotDot, "...")           \
-    X(Arrow, "->")
+    X(Arrow, "->")                \
+    X(FatArrow, "=>")
 
 // This allows us to remove one value from the switch statement when lexing "single kinds".
 #define VELA_SINGLE_CHAR_TOKENS_EXCLUDING_DOT(X) \
