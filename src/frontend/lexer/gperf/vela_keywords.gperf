@@ -1,7 +1,6 @@
 %{
-#include <cstddef>
-#include <cstring>
-#include "token.h"
+#ifndef VELA_KEYWORDS_GEN_H
+#define VELA_KEYWORDS_GEN_H
 
 #if defined(__clang__)
     #pragma clang diagnostic push
@@ -14,6 +13,10 @@
 #elif defined(_MSC_VER)
     #pragma warning(push, 0)
 #endif
+
+#include <cstddef>
+#include <cstring>
+#include "token.h"
 
 namespace vela::lex {
 
@@ -62,3 +65,5 @@ string, TokenKind::KwString
 #elif defined(_MSC_VER)
     #pragma warning(pop)
 #endif
+
+#endif // VELA_KEYWORDS_GEN_H

@@ -1,5 +1,5 @@
-/* C++ code produced by gperf version 3.0.3 */
-/* Command-line: /Library/Developer/CommandLineTools/usr/bin/gperf gperf/vela_keywords.gperf  */
+/* C++ code produced by gperf version 3.0.1 */
+/* Command-line: 'C:\\Program Files (x86)\\GnuWin32\\bin\\gperf.exe' '.\\gperf\\vela_keywords.gperf'  */
 /* Computed positions: -k'1,4' */
 
 #if !((' ' == 32) && ('!' == 33) && ('"' == 34) && ('#' == 35) \
@@ -29,11 +29,10 @@
 #error "gperf generated tables don't work with this execution character set. Please report a bug to <bug-gnu-gperf@gnu.org>."
 #endif
 
-#line 1 "gperf/vela_keywords.gperf"
+#line 1 ".\gperf\vela_keywords.gperf"
 
-#include <cstddef>
-#include <cstring>
-#include "token.h"
+#ifndef VELA_KEYWORDS_GEN_H
+#define VELA_KEYWORDS_GEN_H
 
 #if defined(__clang__)
     #pragma clang diagnostic push
@@ -47,9 +46,13 @@
     #pragma warning(push, 0)
 #endif
 
+#include <cstddef>
+#include <cstring>
+#include "token.h"
+
 namespace vela::lex {
 
-#line 31 "gperf/vela_keywords.gperf"
+#line 34 ".\gperf\vela_keywords.gperf"
 struct PerfectKeywordHashTableEntry { const char* name; TokenKind kind; };
 /* maximum key range = 28, duplicates = 0 */
 
@@ -93,7 +96,7 @@ VelaKeywords::hash (register const char *str, register unsigned int len)
       30, 30, 30, 30, 30, 30, 30, 30, 30, 30,
       30, 30, 30, 30, 30, 30
     };
-  register unsigned int hval = len;
+  register int hval = len;
 
   switch (hval)
     {
@@ -130,59 +133,59 @@ VelaKeywords::lookup (register const char *str, register unsigned int len)
   static const struct PerfectKeywordHashTableEntry wordlist[] =
     {
       {""}, {""},
-#line 39 "gperf/vela_keywords.gperf"
+#line 42 ".\gperf\vela_keywords.gperf"
       {"if", TokenKind::KwIf},
-#line 50 "gperf/vela_keywords.gperf"
+#line 53 ".\gperf\vela_keywords.gperf"
       {"int", TokenKind::KwInt},
-#line 47 "gperf/vela_keywords.gperf"
+#line 50 ".\gperf\vela_keywords.gperf"
       {"this", TokenKind::KwThis},
       {""},
-#line 53 "gperf/vela_keywords.gperf"
+#line 56 ".\gperf\vela_keywords.gperf"
       {"string", TokenKind::KwString},
-#line 38 "gperf/vela_keywords.gperf"
+#line 41 ".\gperf\vela_keywords.gperf"
       {"fn", TokenKind::KwFn},
-#line 41 "gperf/vela_keywords.gperf"
+#line 44 ".\gperf\vela_keywords.gperf"
       {"for", TokenKind::KwFor},
-#line 44 "gperf/vela_keywords.gperf"
+#line 47 ".\gperf\vela_keywords.gperf"
       {"true", TokenKind::KwTrue},
-#line 45 "gperf/vela_keywords.gperf"
+#line 48 ".\gperf\vela_keywords.gperf"
       {"false", TokenKind::KwFalse},
-#line 36 "gperf/vela_keywords.gperf"
+#line 39 ".\gperf\vela_keywords.gperf"
       {"struct", TokenKind::KwStruct},
       {""},
-#line 48 "gperf/vela_keywords.gperf"
+#line 51 ".\gperf\vela_keywords.gperf"
       {"new", TokenKind::KwNew},
-#line 40 "gperf/vela_keywords.gperf"
+#line 43 ".\gperf\vela_keywords.gperf"
       {"else", TokenKind::KwElse},
-#line 37 "gperf/vela_keywords.gperf"
+#line 40 ".\gperf\vela_keywords.gperf"
       {"class", TokenKind::KwClass},
-#line 43 "gperf/vela_keywords.gperf"
+#line 46 ".\gperf\vela_keywords.gperf"
       {"return", TokenKind::KwReturn},
       {""},
-#line 34 "gperf/vela_keywords.gperf"
+#line 37 ".\gperf\vela_keywords.gperf"
       {"comptime", TokenKind::KwComptime},
-#line 46 "gperf/vela_keywords.gperf"
+#line 49 ".\gperf\vela_keywords.gperf"
       {"null", TokenKind::KwNull},
-#line 42 "gperf/vela_keywords.gperf"
+#line 45 ".\gperf\vela_keywords.gperf"
       {"while", TokenKind::KwWhile},
       {""}, {""}, {""},
-#line 49 "gperf/vela_keywords.gperf"
+#line 52 ".\gperf\vela_keywords.gperf"
       {"void", TokenKind::KwVoid},
-#line 51 "gperf/vela_keywords.gperf"
+#line 54 ".\gperf\vela_keywords.gperf"
       {"float", TokenKind::KwFloat},
       {""},
-#line 35 "gperf/vela_keywords.gperf"
+#line 38 ".\gperf\vela_keywords.gperf"
       {"concept", TokenKind::KwConcept},
       {""},
-#line 52 "gperf/vela_keywords.gperf"
+#line 55 ".\gperf\vela_keywords.gperf"
       {"bool", TokenKind::KwBool}
     };
 
   if (len <= MAX_WORD_LENGTH && len >= MIN_WORD_LENGTH)
     {
-      unsigned int key = hash (str, len);
+      register int key = hash (str, len);
 
-      if (key <= MAX_HASH_VALUE)
+      if (key <= MAX_HASH_VALUE && key >= 0)
         if (len == lengthtable[key])
           {
             register const char *s = wordlist[key].name;
@@ -193,7 +196,7 @@ VelaKeywords::lookup (register const char *str, register unsigned int len)
     }
   return 0;
 }
-#line 54 "gperf/vela_keywords.gperf"
+#line 57 ".\gperf\vela_keywords.gperf"
 
 
 }
@@ -205,3 +208,5 @@ VelaKeywords::lookup (register const char *str, register unsigned int len)
 #elif defined(_MSC_VER)
     #pragma warning(pop)
 #endif
+
+#endif // VELA_KEYWORDS_GEN_H
