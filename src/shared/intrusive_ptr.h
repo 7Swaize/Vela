@@ -12,10 +12,32 @@ namespace vela::shared {
     struct adopt_ref_t { explicit adopt_ref_t() = default; };
     inline constexpr adopt_ref_t adopt_ref{};
 
+    // Concept written at namespace level and, thus, is evaluated there and cannot access
+    // private members of T. Having an access struct moves checking of that private member
+    // to the access context of the struct, which is a friend of T (or atleast should be),
+    // and is able to access private members and evaluate the 'requires' clause.
+    //
+    // Or we could have just used ADL.
+    struct intrusive_access {
+        template <typename T>
+        static void add_ref(T &t) noexcept
+            requires requires { { t.intrusive_ptr_add_ref() } noexcept; }
+        {
+            t.intrusive_ptr_add_ref();
+        }
+
+        template <typename T>
+        static void release_ref(T &t) noexcept
+            requires requires { { t.intrusive_ptr_release_ref() } noexcept; }
+        {
+            t.intrusive_ptr_release_ref();
+        }
+    };
+
     template <typename T>
     concept intrusive_refcounted = requires(T &t) {
-        { t.intrusive_ptr_add_ref() } noexcept;
-        { t.intrusive_ptr_release_ref() } noexcept;
+        intrusive_access::add_ref(t);
+        intrusive_access::release_ref(t);
     };
 
     template <typename T>
@@ -72,16 +94,17 @@ namespace vela::shared {
         static void retain(T *ptr) {
             static_assert(intrusive_refcounted<T>, "T must provide add_ref and release semantics");
             if (ptr != nullptr) {
-                ptr->intrusive_ptr_add_ref();
+                intrusive_access::add_ref(*ptr);
             }
         }
 
         static void drop(T *ptr) {
             static_assert(intrusive_refcounted<T>, "T must provide add_ref and release semantics");
             if (ptr != nullptr) {
-                ptr->intrusive_ptr_release_ref();
+                intrusive_access::release_ref(*ptr);
             }
         }
+
 
         T *m_ptr = nullptr;
     };
@@ -89,6 +112,11 @@ namespace vela::shared {
     template <typename T, typename... Args>
     [[nodiscard]] IntrusivePtr<T> make_intrusive(Args &&...args) {
         return IntrusivePtr<T>(new T(std::forward<Args>(args)...));
+    }
+
+    template <typename T>
+    [[nodiscard]] IntrusivePtr<T> adopt_intrusive(T *ptr) {
+        return IntrusivePtr(ptr, adopt_ref);
     }
 }
 

@@ -88,6 +88,10 @@ target_sources(vela_shared INTERFACE
         src/shared/typing.h
 )
 
+target_compile_definitions(vela_shared INTERFACE
+    $<$<CONFIG:Debug>:VELA_DEBUG>
+)
+
 add_library(vela_lexer STATIC
     src/frontend/source_buffer.h
 
@@ -105,7 +109,7 @@ add_library(vela_lexer STATIC
 )
 target_include_directories(vela_lexer PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src/frontend/lexer)
 target_link_libraries(vela_lexer
-    PRIVATE vela_shared
+    PUBLIC vela_shared
     PRIVATE vela_compile_options
 )
 
@@ -132,7 +136,7 @@ add_library(vela_parser STATIC
 )
 target_include_directories(vela_parser PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src/frontend)
 target_link_libraries(vela_parser
-    PRIVATE vela_shared
+    PUBLIC vela_shared
     PRIVATE vela_compile_options
 )
 

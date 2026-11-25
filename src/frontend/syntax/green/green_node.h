@@ -210,8 +210,7 @@ namespace vela::parse {
             constexpr static int ShiftCountForFlags = 12;
         };
 
-        template <typename U>
-        friend class shared::IntrusivePtr;
+        friend struct shared::intrusive_access;
 
         void intrusive_ptr_add_ref() const noexcept {
             ++m_refCount;
@@ -230,6 +229,11 @@ namespace vela::parse {
         NodePos m_fullWidth = 0;
 
         mutable uint32_t m_refCount = 0;
+
+    private:
+        // These exist for asserts related to ref counts in slots
+        VELA_DEBUG_FRIEND(template <int N> friend class GreenNodeN)
+        VELA_DEBUG_FRIEND(friend class GreenNodeList)
     };
 
     class GreenTrivia final : public GreenNode {
@@ -261,27 +265,27 @@ namespace vela::parse {
     public:
         GreenToken(NodeKind kind,
                    std::string_view text,
-                   const GreenNode *leading = nullptr,
-                   const GreenNode *trailing = nullptr,
+                   GreenRef<const GreenNode> leading = nullptr,
+                   GreenRef<const GreenNode> trailing = nullptr,
                    std::vector<Diagnostic *> diagnostics = emptyDiagnosticsBuf)
             : GreenNode(kind, std::move(diagnostics)), m_text(text),
-              m_leading(leading), m_trailing(trailing)
+              m_leading(std::move(leading)), m_trailing(std::move(trailing))
         {
             setFlags(kind == NodeKind::UnexpectedToken ? NodeFlags::IsNotMissing | NodeFlags::ContainsSkippedText : NodeFlags::IsNotMissing);
             setFullWidth(static_cast<NodePos>(text.size()));
 
             if (m_leading != nullptr) {
-                adjustFlagsAndWidth(m_leading);
+                adjustFlagsAndWidth(m_leading.get());
             }
 
             if (m_trailing != nullptr) {
-                adjustFlagsAndWidth(m_trailing);
+                adjustFlagsAndWidth(m_trailing.get());
             }
         }
 
         std::string_view text() const { return m_text; }
-        const GreenNode *leading() const { return m_leading; }
-        const GreenNode *trailing() const { return m_trailing; }
+        const GreenNode *leading() const { return m_leading.get(); }
+        const GreenNode *trailing() const { return m_trailing.get(); }
 
         // Tokens are terminal, thus they cannot have children
         const GreenNode *slot(int index) const override {
@@ -299,51 +303,63 @@ namespace vela::parse {
 
     private:
         std::string_view m_text;
-        const GreenNode *m_leading;
-        const GreenNode *m_trailing;
+        GreenRef<const GreenNode> m_leading;
+        GreenRef<const GreenNode> m_trailing;
     };
 
     template <int N>
     class GreenNodeN : public GreenNode {
     public:
         const GreenNode *slot(int index) const override {
-            return index >= 0 && index < N ? m_slots[index] : nullptr;
+            if (VELA_UNLIKELY(index < 0 || index >= N)) {
+                return nullptr;
+            }
+
+            const GreenNode *ref = m_slots[index].get();
+            assert(ref->m_refCount > 0);
+
+            return ref;
         }
 
     protected:
-        GreenNodeN(NodeKind kind, std::array<const GreenNode *, N> &&slots, std::vector<Diagnostic *> diagnostics = emptyDiagnosticsBuf)
+        GreenNodeN(NodeKind kind, std::array<GreenRef<const GreenNode>, N> &&slots, std::vector<Diagnostic *> diagnostics = emptyDiagnosticsBuf)
             : GreenNode(kind, std::move(diagnostics)), m_slots(std::move(slots))
         {
             setSlotCount(N);
-            for (const GreenNode *node : m_slots) {
-                if (node != nullptr) {
-                    adjustFlagsAndWidth(node);
+            for (const GreenRef<const GreenNode>& ref : m_slots) {
+                if (ref != nullptr) {
+                    adjustFlagsAndWidth(ref.get());
                 }
             }
         }
 
     private:
-        std::array<const GreenNode *, N> m_slots;
+        std::array<GreenRef<const GreenNode>, N> m_slots;
     };
 
     class GreenNodeList : public GreenNode {
     public:
         const GreenNode *slot(int index) const override {
-            return index >= 0 && index < static_cast<int>(m_slots.size())
-                ? m_slots[static_cast<std::size_t>(index)]
-                : nullptr;
+            if (VELA_UNLIKELY(index < 0 || index >= static_cast<int>(m_slots.size()))) {
+                return nullptr;
+            }
+
+            const GreenNode *target = m_slots[static_cast<std::size_t>(index)].get();
+            assert(target->m_refCount > 0);
+
+            return target;
         }
 
         NodeKind underlyingKind() const override { return m_underlyingKind; }
 
     protected:
-        GreenNodeList(NodeKind kind, NodeKind underlyingKind, std::vector<const GreenNode *> slots, std::vector<Diagnostic *> diagnostics = emptyDiagnosticsBuf)
+        GreenNodeList(NodeKind kind, NodeKind underlyingKind, std::vector<GreenRef<const GreenNode>> slots, std::vector<Diagnostic *> diagnostics = emptyDiagnosticsBuf)
             : GreenNode(kind, std::move(diagnostics)), m_slots(std::move(slots)), m_underlyingKind(underlyingKind)
         {
             setSlotCount(static_cast<int>(m_slots.size()));
-            for (const GreenNode *node : m_slots) {
-                if (node != nullptr) {
-                    adjustFlagsAndWidth(node);
+            for (const GreenRef<const GreenNode> &ref : m_slots) {
+                if (ref != nullptr) {
+                    adjustFlagsAndWidth(ref.get());
                 }
             }
         }
@@ -351,7 +367,7 @@ namespace vela::parse {
         int slotCountSlow() const override { return static_cast<int>(m_slots.size()); }
 
     private:
-        std::vector<const GreenNode *> m_slots;
+        std::vector<GreenRef<const GreenNode>> m_slots;
         NodeKind m_underlyingKind;
     };
 }

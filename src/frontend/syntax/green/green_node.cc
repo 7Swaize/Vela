@@ -2,7 +2,7 @@
 
 namespace vela::parse {
     // We have to use an iterative approach here because a recursive chain could possibly overflow.
-    // (Though its not very likely).
+    // (Though it's not very likely).
     void GreenNode::destroy(const GreenNode *root) {
         std::vector worklist{root};
 

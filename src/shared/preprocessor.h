@@ -22,4 +22,10 @@
 #define VELA_LIKELY(x) __builtin_expect(!!(x), 1)
 #define VELA_UNLIKELY(x) __builtin_expect(!!(x), 0)
 
+#if defined(VELA_DEBUG)
+  #define VELA_DEBUG_FRIEND(...) __VA_ARGS__;
+#else
+  #define DEBUG_FRIEND(...)
+#endif
+
 #endif // PREPROCESSOR_H
