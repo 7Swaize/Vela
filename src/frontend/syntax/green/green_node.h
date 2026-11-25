@@ -57,7 +57,13 @@ namespace vela::parse {
             }
         }
 
+        // This method should really be the only thing interacting with raw GreenRef<T> instances.
+        // It should be te gateway between GreenRef<T> and a 'T *'
+        // Reasons:
+        // 1. This simplifies the API. Removes unneeded ref-count increment and decrements, and it's just simpler to use.
+        // 2. It simplifies the refactor.
         virtual const GreenNode *slot(int index) const = 0;
+
         virtual NodeKind underlyingKind() const { return NodeKind::UndefinedSyntax; }
 
         int slotCount() const {
