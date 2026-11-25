@@ -42,8 +42,8 @@ namespace vela::parse {
     }
 
     // Addresses normalization mentioned here in ctor: https://github.com/dotnet/roslyn/blob/main/src/Compilers/CSharp/Portable/Parser/Blender.cs
-    Blender::Blender(lex::Lexer lexer, const SyntaxNode* oldTree, std::span<const TextChangeRange> changes)
-        : m_lexer(lexer), m_changeDelta(0)
+    Blender::Blender(lex::Lexer lexer, shared::ArenaAllocator &arena, const SyntaxNode* oldTree, std::span<const TextChangeRange> changes)
+        : m_lexer(lexer), m_arena(arena), m_changeDelta(0)
     {
         if (oldTree != nullptr && !changes.empty()) {
             m_changes = std::make_shared<const NormalizedChangeCollection>(

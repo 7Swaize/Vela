@@ -5,7 +5,6 @@
 #include <cstddef>
 #include <memory>
 #include <optional>
-#include <stack>
 #include <vector>
 
 #include "frontend/syntax/green/green_node_fwds.h"
@@ -145,7 +144,7 @@ namespace vela::parse {
         class Reader {
         public:
             Reader(lex::Lexer lexer,
-                   shared::ArenaAllocator *arena,
+                   shared::ArenaAllocator &arena,
                    Cursor cursor,
                    std::shared_ptr<const NormalizedChangeCollection> changes,
                    std::size_t currChange,
@@ -171,7 +170,7 @@ namespace vela::parse {
             BlendedNode createBlendedNode(const GreenNode *green) const;
 
             lex::Lexer m_lexer;
-            shared::ArenaAllocator *m_arena;
+            shared::ArenaAllocator &m_arena;
             Cursor m_oldTreeCursor;
             std::shared_ptr<const NormalizedChangeCollection> m_changes;
             std::size_t m_currChange = 0;
@@ -181,11 +180,11 @@ namespace vela::parse {
         };
 
     public:
-        Blender(lex::Lexer lexer, const SyntaxNode* oldTree, std::span<const TextChangeRange> changes);
+        Blender(lex::Lexer lexer, shared::ArenaAllocator &arena, const SyntaxNode* oldTree, std::span<const TextChangeRange> changes);
 
     private:
         Blender(lex::Lexer lexer,
-                shared::ArenaAllocator *arena,
+                shared::ArenaAllocator &arena,
                 Cursor oldTreeCursor,
                 std::shared_ptr<const NormalizedChangeCollection> changes,
                 std::size_t currChange,
@@ -197,7 +196,7 @@ namespace vela::parse {
         static TextChangeRange extendToAffectedRange(const SyntaxNode& oldTree, const TextChangeRange &change);
 
         lex::Lexer m_lexer;
-        shared::ArenaAllocator *m_arena;
+        shared::ArenaAllocator &m_arena;
         Cursor m_oldTreeCursor;
 
         std::shared_ptr<const NormalizedChangeCollection> m_changes = std::make_shared<const NormalizedChangeCollection>();
