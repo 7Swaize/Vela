@@ -67,6 +67,14 @@ namespace {
         "1... 1.5... 1..2 1.2.3...",
         "...->x; x->...; ...==y; \"...\" // ...",
         "\"multi\nline\nstring\" tail",
+        // Range and '$'
+        "$",
+        "$T",
+        "Vec<$T>",
+        "a[0..n]; b[..n]; c[n..]; d[..]; e[1.5..2.5]; f[1.2..3]",
+        "x$y; $$; $.a; $T...; ..$; 1$; $1",
+        "..==..; ..->..; ..=>..; $=>$; ..=; <$>; !$",
+        "\"$ ..\" // $ ..\n/* .. $ */ $ ..",
         // Whitespace trivia
         "   ",
         "\t\t\t",
@@ -433,20 +441,20 @@ TEST(ReferenceLexer, DotDotDot) {
     EXPECT_EQ(kinds("a ... b"), (KindsVec{K::Identifier, K::SpaceTrivia, K::DotDotDot, K::SpaceTrivia, K::Identifier, K::Eof}));
 
     EXPECT_EQ(kinds("."), (KindsVec{K::Dot, K::Eof}));
-    EXPECT_EQ(kinds(".."), (KindsVec{K::Dot, K::Dot, K::Eof}));
+    EXPECT_EQ(kinds(".."), (KindsVec{K::DotDot, K::Eof}));
     EXPECT_EQ(kinds(". . ."), (KindsVec{K::Dot, K::SpaceTrivia, K::Dot, K::SpaceTrivia, K::Dot, K::Eof}));
-    EXPECT_EQ(kinds("a..b"), (KindsVec{K::Identifier, K::Dot, K::Dot, K::Identifier, K::Eof}));
+    EXPECT_EQ(kinds("a..b"), (KindsVec{K::Identifier, K::DotDot, K::Identifier, K::Eof}));
     EXPECT_EQ(kinds("a.b"), (KindsVec{K::Identifier, K::Dot, K::Identifier, K::Eof}));
 
     // We adhere to maximal munch
     EXPECT_EQ(kinds("...."), (KindsVec{K::DotDotDot, K::Dot, K::Eof}));
-    EXPECT_EQ(kinds("....."), (KindsVec{K::DotDotDot, K::Dot, K::Dot, K::Eof}));
+    EXPECT_EQ(kinds("....."), (KindsVec{K::DotDotDot, K::DotDot, K::Eof}));
     EXPECT_EQ(kinds("......"), (KindsVec{K::DotDotDot, K::DotDotDot, K::Eof}));
     EXPECT_EQ(inv_ref("...."), (TokenVec{{3, K::DotDotDot}, {1, K::Dot}, {0, K::Eof}}));
 
     EXPECT_EQ(kinds("1..."), (KindsVec{K::IntLiteral, K::DotDotDot, K::Eof}));
     EXPECT_EQ(kinds("1.5..."), (KindsVec{K::FloatLiteral, K::DotDotDot, K::Eof}));
-    EXPECT_EQ(kinds("1..2"), (KindsVec{K::IntLiteral, K::Dot, K::Dot, K::IntLiteral, K::Eof}));
+    EXPECT_EQ(kinds("1..2"), (KindsVec{K::IntLiteral, K::DotDot, K::IntLiteral, K::Eof}));
     EXPECT_EQ(kinds("...5"), (KindsVec{K::DotDotDot, K::IntLiteral, K::Eof}));
 
     EXPECT_EQ(kinds("...=="), (KindsVec{K::DotDotDot, K::EqEq, K::Eof}));
@@ -457,7 +465,81 @@ TEST(ReferenceLexer, DotDotDot) {
     EXPECT_EQ(kinds(R"("...")"), (KindsVec{K::StringLiteral, K::Eof}));
     EXPECT_EQ(kinds("// ..."), (KindsVec{K::CommentTrivia, K::Eof}));
     EXPECT_EQ(kinds("/* ... */"), (KindsVec{K::MultilineCommentTrivia, K::Eof}));
-    EXPECT_EQ(kinds("..//.\n."), (KindsVec{K::Dot, K::Dot, K::CommentTrivia, K::NewlineTrivia, K::Dot, K::Eof}));
+    EXPECT_EQ(kinds("..//.\n."), (KindsVec{K::DotDot, K::CommentTrivia, K::NewlineTrivia, K::Dot, K::Eof}));
+}
+
+TEST(ReferenceLexer, DotDot) {
+    EXPECT_EQ(inv_ref(".."), (TokenVec{{2, K::DotDot}, {0, K::Eof}}));
+    EXPECT_EQ(inv_ref("a..b"), (TokenVec{{1, K::Identifier}, {2, K::DotDot}, {1, K::Identifier}, {0, K::Eof}}));
+    EXPECT_EQ(kinds("a .. b"), (KindsVec{K::Identifier, K::SpaceTrivia, K::DotDot, K::SpaceTrivia, K::Identifier, K::Eof}));
+    EXPECT_EQ(kinds("a.b..c"), (KindsVec{K::Identifier, K::Dot, K::Identifier, K::DotDot, K::Identifier, K::Eof}));
+
+    // Dots only form a DotDot when adjacent.
+    EXPECT_EQ(kinds(". ."), (KindsVec{K::Dot, K::SpaceTrivia, K::Dot, K::Eof}));
+    EXPECT_EQ(kinds(".\n."), (KindsVec{K::Dot, K::NewlineTrivia, K::Dot, K::Eof}));
+    EXPECT_EQ(kinds("./**/."), (KindsVec{K::Dot, K::MultilineCommentTrivia, K::Dot, K::Eof}));
+    EXPECT_EQ(kinds(".//c\n."), (KindsVec{K::Dot, K::CommentTrivia, K::NewlineTrivia, K::Dot, K::Eof}));
+
+    // Ranges, with either bound optional.
+    EXPECT_EQ(kinds("0..10"), (KindsVec{K::IntLiteral, K::DotDot, K::IntLiteral, K::Eof}));
+    EXPECT_EQ(kinds("1.."), (KindsVec{K::IntLiteral, K::DotDot, K::Eof}));
+    EXPECT_EQ(kinds("..5"), (KindsVec{K::DotDot, K::IntLiteral, K::Eof}));
+    EXPECT_EQ(kinds("1.5..2.5"), (KindsVec{K::FloatLiteral, K::DotDot, K::FloatLiteral, K::Eof}));
+    EXPECT_EQ(kinds("1.2..3"), (KindsVec{K::FloatLiteral, K::DotDot, K::IntLiteral, K::Eof}));
+    EXPECT_EQ(kinds("a[1..]"), (KindsVec{K::Identifier, K::LBracket, K::IntLiteral, K::DotDot, K::RBracket, K::Eof}));
+    EXPECT_EQ(kinds("a[..n]"), (KindsVec{K::Identifier, K::LBracket, K::DotDot, K::Identifier, K::RBracket, K::Eof}));
+    EXPECT_EQ(kinds("a[..]"), (KindsVec{K::Identifier, K::LBracket, K::DotDot, K::RBracket, K::Eof}));
+
+    // Maximal munch
+    EXPECT_EQ(inv_ref("....."), (TokenVec{{3, K::DotDotDot}, {2, K::DotDot}, {0, K::Eof}}));
+    EXPECT_EQ(kinds("......."), (KindsVec{K::DotDotDot, K::DotDotDot, K::Dot, K::Eof}));
+
+    EXPECT_EQ(kinds("..=="), (KindsVec{K::DotDot, K::EqEq, K::Eof}));
+    EXPECT_EQ(kinds("==.."), (KindsVec{K::EqEq, K::DotDot, K::Eof}));
+    EXPECT_EQ(kinds("..->"), (KindsVec{K::DotDot, K::Arrow, K::Eof}));
+    EXPECT_EQ(kinds("->.."), (KindsVec{K::Arrow, K::DotDot, K::Eof}));
+    EXPECT_EQ(kinds("..=>"), (KindsVec{K::DotDot, K::FatArrow, K::Eof}));
+    EXPECT_EQ(kinds("=>.."), (KindsVec{K::FatArrow, K::DotDot, K::Eof}));
+    EXPECT_EQ(kinds("..="), (KindsVec{K::DotDot, K::Assign, K::Eof}));
+
+    EXPECT_EQ(kinds(R"("..")"), (KindsVec{K::StringLiteral, K::Eof}));
+    EXPECT_EQ(kinds("// .."), (KindsVec{K::CommentTrivia, K::Eof}));
+    EXPECT_EQ(kinds("/* .. */"), (KindsVec{K::MultilineCommentTrivia, K::Eof}));
+    EXPECT_EQ(kinds("// ..\n.."), (KindsVec{K::CommentTrivia, K::NewlineTrivia, K::DotDot, K::Eof}));
+}
+
+TEST(ReferenceLexer, Dollar) {
+    EXPECT_EQ(inv_ref("$"), (TokenVec{{1, K::Dollar}, {0, K::Eof}}));
+    EXPECT_EQ(inv_ref("$T"), (TokenVec{{1, K::Dollar}, {1, K::Identifier}, {0, K::Eof}}));
+    EXPECT_EQ(kinds("$ T"), (KindsVec{K::Dollar, K::SpaceTrivia, K::Identifier, K::Eof}));
+    EXPECT_EQ(kinds("$$"), (KindsVec{K::Dollar, K::Dollar, K::Eof}));
+
+    // '$' is never part of a word, so it ends (and starts) identifiers and numbers.
+    EXPECT_EQ(kinds("T$"), (KindsVec{K::Identifier, K::Dollar, K::Eof}));
+    EXPECT_EQ(kinds("Vec$T"), (KindsVec{K::Identifier, K::Dollar, K::Identifier, K::Eof}));
+    EXPECT_EQ(kinds("$_x"), (KindsVec{K::Dollar, K::Identifier, K::Eof}));
+    EXPECT_EQ(kinds("$if"), (KindsVec{K::Dollar, K::KwIf, K::Eof}));
+    EXPECT_EQ(kinds("1$"), (KindsVec{K::IntLiteral, K::Dollar, K::Eof}));
+    EXPECT_EQ(kinds("$1"), (KindsVec{K::Dollar, K::IntLiteral, K::Eof}));
+
+    // Neighbouring punctuation.
+    EXPECT_EQ(kinds("Vec<$T>"), (KindsVec{K::Identifier, K::Lt, K::Dollar, K::Identifier, K::Gt, K::Eof}));
+    EXPECT_EQ(kinds("$T..."), (KindsVec{K::Dollar, K::Identifier, K::DotDotDot, K::Eof}));
+    EXPECT_EQ(kinds("$.a"), (KindsVec{K::Dollar, K::Dot, K::Identifier, K::Eof}));
+    EXPECT_EQ(kinds("$T[]"), (KindsVec{K::Dollar, K::Identifier, K::LBracket, K::RBracket, K::Eof}));
+
+    // '$' is not part of any operator pair, so it never forms or breaks one.
+    EXPECT_EQ(kinds("$="), (KindsVec{K::Dollar, K::Assign, K::Eof}));
+    EXPECT_EQ(kinds("=$"), (KindsVec{K::Assign, K::Dollar, K::Eof}));
+    EXPECT_EQ(kinds("$=="), (KindsVec{K::Dollar, K::EqEq, K::Eof}));
+    EXPECT_EQ(kinds("$->"), (KindsVec{K::Dollar, K::Arrow, K::Eof}));
+    EXPECT_EQ(kinds("$=>$"), (KindsVec{K::Dollar, K::FatArrow, K::Dollar, K::Eof}));
+    EXPECT_EQ(kinds("<$>"), (KindsVec{K::Lt, K::Dollar, K::Gt, K::Eof}));
+
+    EXPECT_EQ(kinds(R"("$")"), (KindsVec{K::StringLiteral, K::Eof}));
+    EXPECT_EQ(kinds("// $"), (KindsVec{K::CommentTrivia, K::Eof}));
+    EXPECT_EQ(kinds("/* $ */"), (KindsVec{K::MultilineCommentTrivia, K::Eof}));
+    EXPECT_EQ(kinds("// $\n$"), (KindsVec{K::CommentTrivia, K::NewlineTrivia, K::Dollar, K::Eof}));
 }
 
 TEST(ReferenceLexer, SingleCharTokens) {
@@ -467,7 +549,7 @@ TEST(ReferenceLexer, SingleCharTokens) {
 }
 
 TEST(ReferenceLexer, InvalidBytes) {
-    for (const char c : {':', '?', '@', '#', '$', '`', '\'', '\\'}) {
+    for (const char c : {':', '?', '@', '#', '`', '\'', '\\'}) {
         EXPECT_EQ(inv_ref(std::string(1, c)), (TokenVec{{1, K::Error}, {0, K::Eof}})) << c;
     }
     EXPECT_EQ(inv_ref(std::string_view("\0", 1)), (TokenVec{{1, K::Error}, {0, K::Eof}}));

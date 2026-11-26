@@ -30,11 +30,12 @@
 //       and lexing resumes at the end of the malformed operator block.
 //       "->" is Arrow. "=>" is FatArrow. A lone '-' (not followed by '>') is Minus, and a lone '>' is Gt, so "- >" is
 //       Minus, SpaceTrivia, Gt and "-->" is Minus then Arrow.
-//   * "..." is DotDotDot. Matching is greedy and left to right, so "...." is DotDotDot then Dot and
-//       "....." is DotDotDot, Dot, Dot. One or two dots are Dot tokens. Dots are not part of the
-//       operator chain rule above ("...==" is DotDotDot then EqEq), and a number does not absorb them
-//       ("1..." is IntLiteral then DotDotDot).
-//   * Single-byte tokens come from VELA_SINGLE_CHAR_TOKENS.
+//   * "..." is DotDotDot, ".." is DotDot and a lone "." is Dot. Matching is greedy and left to right, so
+//       "...." is DotDotDot then Dot and "....." is DotDotDot then DotDot. Dots are not part of the
+//       operator chain rule above ("...==" is DotDotDot then EqEq, "..=>" is DotDot then FatArrow), and a
+//       number does not absorb them ("1..." is IntLiteral then DotDotDot, "1..2" is Int, DotDot, Int).
+//   * Single-byte tokens come from VELA_SINGLE_CHAR_TOKENS. This includes '$' (Dollar), which is never
+//       part of an operator pair or a word, so it always ends an identifier or number and stands alone.
 //   * Any other byte (':', '?', '\\' outside a string, NUL, bytes >= 0x80, ...)
 //       is a one-byte Error token.
 //   * The stream always ends with a zero-width Eof.
@@ -229,6 +230,12 @@ namespace vela::unittests::lex {
             if (c == '.' && i + 2 < n && s[i + 1] == '.' && s[i + 2] == '.') {
                 emit(i, i + 3, TokenKind::DotDotDot);
                 i += 3;
+                continue;
+            }
+
+            if (c == '.' && i + 1 < n && s[i + 1] == '.') {
+                emit(i, i + 2, TokenKind::DotDot);
+                i += 2;
                 continue;
             }
 
