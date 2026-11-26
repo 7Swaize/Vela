@@ -23,7 +23,7 @@ namespace vela::lex::detail {
             Rect{.bit = 1, .members = "PQRSTUVWXYZpqrstuvwxyz"}, // ident
             Rect{.bit = 2, .members = "_"}, // ident
             Rect{.bit = 3, .members = "0123456789"}, // ident
-            Rect{.bit = 4, .members = "!%&()*+,-./"}, // punct
+            Rect{.bit = 4, .members = "!$%&()*+,-./"}, // punct
             Rect{.bit = 5, .members = ";<=>{|}~"}, // punct
             Rect{.bit = 6, .members = "[]^"} // punct
     };

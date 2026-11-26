@@ -277,6 +277,14 @@ namespace vela::lex {
             };
         }
 
+        if (VELA_UNLIKELY(pos + 1 < n && source[pos + 1] == '.')) {
+            return {
+                .width = 2,
+                .end = pos + 2,
+                .kind = TokenKind::DotDot
+            };
+        }
+
         return {
             .width = 1,
             .end = pos + 1,

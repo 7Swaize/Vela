@@ -24,6 +24,8 @@ namespace vela::lex {
     X(StringLiteral, "<string>")  \
     X(KwComptime, "comptime")     \
     X(KwConcept, "concept")       \
+    X(KwMatch, "match")           \
+    X(KwOperator, "operator")     \
     X(KwStruct, "struct")         \
     X(KwClass, "class")           \
     X(KwFn, "fn")                 \
@@ -55,6 +57,7 @@ namespace vela::lex {
     X(Minus, "-")                 \
     X(Star, "*")                  \
     X(Slash, "/")                 \
+    X(Dollar, "$")                \
     X(Percent, "%")               \
     X(Excl, "!")                  \
     X(Tilde, "~")                 \
@@ -72,6 +75,7 @@ namespace vela::lex {
     X(GtEq, ">=")                 \
     X(LtLt, "<<")                 \
     X(GtGt, ">>")                 \
+    X(DotDot, "..")               \
     X(DotDotDot, "...")           \
     X(Arrow, "->")                \
     X(FatArrow, "=>")
@@ -90,6 +94,7 @@ namespace vela::lex {
     X('-', Minus)                                \
     X('*', Star)                                 \
     X('/', Slash)                                \
+    X('$', Dollar)                               \
     X('%', Percent)                              \
     X('!', Excl)                                 \
     X('~', Tilde)                                \

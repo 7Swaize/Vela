@@ -22,6 +22,8 @@ namespace vela::parse {
     X(StringLiteralToken)                      \
     X(KwComptimeToken)                         \
     X(KwConcept)                               \
+    X(KwMatch)                                 \
+    X(KwOperator)                              \
     X(KwStructToken)                           \
     X(KwClassToken)                            \
     X(KwFnToken)                               \
@@ -53,6 +55,7 @@ namespace vela::parse {
     X(MinusToken)                              \
     X(StarToken)                               \
     X(SlashToken)                              \
+    X(DollarToken)                             \
     X(PercentToken)                            \
     X(ExclToken)                               \
     X(TildeToken)                              \
@@ -70,6 +73,7 @@ namespace vela::parse {
     X(GtEqToken)                               \
     X(LtLtToken)                               \
     X(GtGtToken)                               \
+    X(DotDotToken)                             \
     X(DotDotDotToken)                          \
     X(ArrowToken)                              \
     X(FatArrowToken)                           \
@@ -125,6 +129,14 @@ namespace vela::parse {
     X(ComptimeIfStatementSyntax)               \
     X(ComptimeForStatementSyntax)              \
     X(ComptimeBlockStatementSyntax)            \
+    X(QualifiedNameSyntax)                     \
+    X(PackIndexTypeSyntax)                     \
+    X(AssociatedTypeRequirementSyntax)         \
+    X(MemberFunctionRequirementSyntax)         \
+    X(RangeExpressionSyntax)                   \
+    X(PackLiteralExpressionSyntax)             \
+    X(ComptimeVariableDeclarationSyntax)       \
+    X(ComptimeMatchArmSyntax)                  \
     X(UndefinedSyntax)                         \
 
 #define VELA_LIST_SYNTAX_NODE_KINDS(X)         \

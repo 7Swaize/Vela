@@ -36,6 +36,8 @@ struct PerfectKeywordHashTableEntry { const char* name; TokenKind kind; };
 %%
 comptime, TokenKind::KwComptime
 concept, TokenKind::KwConcept
+match, TokenKind::KwMatch
+operator, TokenKind::KwOperator
 struct, TokenKind::KwStruct
 class, TokenKind::KwClass
 fn, TokenKind::KwFn
