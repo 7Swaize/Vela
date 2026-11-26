@@ -322,7 +322,7 @@ namespace vela::parse {
                 return nullptr;
             }
 
-            const GreenNode *ref = m_slots[index].get();
+            const GreenNode *ref = m_slots[static_cast<std::size_t>(index)].get();
             assert(ref->m_refCount > 0);
 
             return ref;

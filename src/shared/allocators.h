@@ -65,7 +65,7 @@ namespace vela::shared {
 
         ArenaAllocator(ArenaAllocator &&other) noexcept
             : m_chunkSize(other.m_chunkSize), m_cur(other.m_cur), m_end(other.m_end),
-              m_chunks(std::move(other.m_chunks)), m_dtors(m_dtors)
+              m_chunks(std::move(other.m_chunks)), m_dtors(other.m_dtors)
         {
             m_cur = nullptr;
             m_end = nullptr;
@@ -87,7 +87,6 @@ namespace vela::shared {
             m_end = other.m_end;
             m_dtors = other.m_dtors;
             m_chunks = std::move(other.m_chunks);
-            m_dtors = other.m_dtors;
 
             other.m_cur = nullptr;
             other.m_end = nullptr;
